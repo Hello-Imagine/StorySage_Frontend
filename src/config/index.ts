@@ -4,7 +4,7 @@ interface Config {
     SESSIONS: string;
     MESSAGES: string;
     LOGIN: string;
-    // Add other endpoints here
+    END_SESSION: (sessionId: string) => string;
   };
 }
 
@@ -14,11 +14,16 @@ const config: Config = {
     SESSIONS: '/sessions',
     MESSAGES: '/messages',
     LOGIN: '/user/login',
+    END_SESSION: (sessionId: string) => `/sessions/${sessionId}/end`,
   },
 };
 
-export const getApiUrl = (endpoint: keyof Config['API_ENDPOINTS']) => {
-  return `${config.API_BASE_URL}${config.API_ENDPOINTS[endpoint]}`;
+export const getApiUrl = (endpoint: keyof Config['API_ENDPOINTS'] | string) => {
+  if (endpoint in config.API_ENDPOINTS) {
+    const configEndpoint = config.API_ENDPOINTS[endpoint as keyof Config['API_ENDPOINTS']];
+    return `${config.API_BASE_URL}${configEndpoint}`;
+  }
+  return `${config.API_BASE_URL}${endpoint}`;
 };
 
 export default config; 

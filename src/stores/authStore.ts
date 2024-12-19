@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { useSessionStore } from './sessionStore';
 
 interface AuthState {
   userId: string | null;
@@ -20,14 +21,17 @@ export const useAuthStore = create<AuthState>()(
         token,
         isAuthenticated: true 
       }),
-      logout: () => set({ 
-        userId: null, 
-        token: null,
-        isAuthenticated: false 
-      }),
+      logout: () => {
+        set({ 
+          userId: null, 
+          token: null,
+          isAuthenticated: false 
+        });
+        useSessionStore.getState().clearSession();
+      },
     }),
     {
-      name: 'auth-storage', // unique name for localStorage key
+      name: 'auth-storage',
     }
   )
 ); 

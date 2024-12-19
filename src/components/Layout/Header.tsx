@@ -3,10 +3,12 @@ import { Button, Dropdown, MenuProps, message } from 'antd';
 import { DownOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
+import { useSessionStore } from '../../stores/sessionStore';
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
   const { userId, logout } = useAuthStore();
+  const clearSession = useSessionStore(state => state.clearSession);
 
   const items: MenuProps['items'] = [
     {
@@ -35,6 +37,7 @@ const Header: React.FC = () => {
 
   const handleLogout = () => {
     logout();
+    clearSession();
     navigate('/login');
   };
 

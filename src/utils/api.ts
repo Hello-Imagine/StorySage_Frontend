@@ -12,7 +12,7 @@ class ApiError extends Error {
 }
 
 export async function apiClient(
-  endpoint: keyof typeof import('../config').default['API_ENDPOINTS'],
+  endpoint: keyof typeof import('../config').default['API_ENDPOINTS'] | string,
   config: RequestConfig = {}
 ) {
   const { token } = useAuthStore.getState();
