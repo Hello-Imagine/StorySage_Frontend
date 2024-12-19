@@ -1,13 +1,15 @@
 # AI Friend Frontend
 
-This is the frontend for the AI Friend project built with React and Tailwind CSS.
+This is the frontend for the AI Friend project built with React.
 
-## Features
+## Frameworks
 
-- 🚀 **React**: A popular library for building user interfaces.
-- 🎨 **Tailwind CSS**: Utility-first CSS framework for rapid UI development.
-- ⚡ **Vite** (optional): Superfast build tool for modern web projects.
-- 🌐 Responsive and modern design.
+The project is built with the following frameworks and libraries:
+
+- 🚀 **React**: Frontend framework for building user interfaces.
+- 🐜 **Ant Design**: UI framework for React.
+- 🎨 **Tailwind CSS**: CSS framework for rapid UI development.
+- ⚡ **Vite**: Superfast build tool for modern web projects.
 
 ## Getting Started
 
@@ -24,9 +26,9 @@ Ensure you have the following installed on your machine:
 
 Install dependencies:
 
-   ```bash
-   npm install
-   ```
+```bash
+npm install
+```
 
 ## Usage
 
@@ -38,7 +40,7 @@ npm run dev
 
 Open your browser and navigate to:
 
-```
+```plaintext
 http://localhost:5173
 ```
 

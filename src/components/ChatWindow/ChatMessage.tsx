@@ -1,16 +1,25 @@
-type MessageProps = {
-  role: 'user' | 'assistant';
-  content: string;
-};
+import React from 'react';
 
-export function ChatMessage({ role, content }: MessageProps) {
+interface ChatMessageProps {
+  message: string;
+  isUser: boolean;
+  isMostRecent?: boolean;
+}
+
+const ChatMessage: React.FC<ChatMessageProps> = ({ message, isUser, isMostRecent = false }) => {
   return (
-    <div className={`p-3 rounded-lg mb-2 ${
-      role === 'user' 
-        ? 'bg-blue-100 ml-[20%]' 
-        : 'bg-gray-100 mr-[20%]'
-    }`}>
-      {content}
+    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}>
+      <div
+        className={`rounded-lg px-4 py-2 max-w-[80%] ${
+          isUser 
+            ? 'bg-blue-500 text-white dark:bg-blue-600' 
+            : 'bg-gray-100 dark:bg-gray-700 dark:text-white'
+        } ${isMostRecent && !isUser ? 'font-semibold text-lg opacity-100' : 'opacity-90'}`}
+      >
+        {message}
+      </div>
     </div>
   );
-} 
+};
+
+export default ChatMessage;
