@@ -1,23 +1,44 @@
 import React from 'react';
 import { Form, Input, Button, Card, message } from 'antd';
 import { UserOutlined, LockOutlined, MailOutlined } from '@ant-design/icons';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../../stores/authStore';
 
 interface RegisterForm {
-  username: string;
+  userId: string;
   email: string;
   password: string;
   confirmPassword: string;
 }
 
 const Register: React.FC = () => {
+  const login = useAuthStore(state => state.login);
+  const navigate = useNavigate();
   const [form] = Form.useForm();
 
   const onFinish = async (values: RegisterForm) => {
-    // TODO: Implement actual registration logic here
-    console.log('Registration form submitted:', values);
-    message.success('Registration successful!');
-    // TODO: Redirect to login page after successful registration
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // TODO: Always register successfully for now
+      login(values.userId.toLowerCase());
+      message.success('Registration successful with userId: ' + values.userId.toLowerCase());
+      navigate('/');
+    } catch (error) {
+      message.error('Registration failed. Please try again.');
+      message.error(error as string);
+    }
+  };
+
+  const validateUserId = (_: unknown, value: string) => {
+    if (!value) {
+      return Promise.reject('Please input your user ID!');
+    }
+    if (!/^[a-z0-9]+$/.test(value)) {
+      return Promise.reject('User ID can only contain lowercase letters and numbers!');
+    }
+    return Promise.resolve();
   };
 
   return (
@@ -36,16 +57,21 @@ const Register: React.FC = () => {
           requiredMark={false}
         >
           <Form.Item
-            name="username"
+            name="userId"
             rules={[
-              { required: true, message: 'Please input your username!' },
-              { min: 3, message: 'Username must be at least 3 characters!' }
+              { validator: validateUserId }
             ]}
+            validateTrigger="onChange"
           >
             <Input 
               prefix={<UserOutlined />} 
-              placeholder="Username"
+              placeholder="User ID"
               size="large"
+              onChange={e => {
+                // Force lowercase while typing
+                const value = e.target.value;
+                e.target.value = value.toLowerCase();
+              }}
             />
           </Form.Item>
 

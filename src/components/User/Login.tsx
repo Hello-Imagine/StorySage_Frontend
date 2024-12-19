@@ -1,21 +1,42 @@
 import React from 'react';
 import { Form, Input, Button, Card, message } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../../stores/authStore';
 
 interface LoginForm {
-  username: string;
+  userId: string;
   password: string;
 }
 
 const Login: React.FC = () => {
+  const login = useAuthStore(state => state.login);
+  const navigate = useNavigate();
   const [form] = Form.useForm();
 
   const onFinish = async (values: LoginForm) => {
-    // TODO: Implement actual login logic here
-    console.log('Login form submitted:', values);
-    message.success('Login successful!');
-    // TODO: Redirect to chat page after successful login
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // TODO: Always login successfully for now
+      login(values.userId.toLowerCase());
+      message.success('Login successful with userId: ' + values.userId.toLowerCase());
+      navigate('/');
+    } catch (error) {
+      message.error('Login failed. Please try again.');
+      message.error(error as string);
+    }
+  };
+
+  const validateUserId = (_: unknown, value: string) => {
+    if (!value) {
+      return Promise.reject('Please input your user ID!');
+    }
+    if (!/^[a-z0-9]+$/.test(value)) {
+      return Promise.reject('User ID can only contain lowercase letters and numbers!');
+    }
+    return Promise.resolve();
   };
 
   return (
@@ -34,13 +55,21 @@ const Login: React.FC = () => {
           requiredMark={false}
         >
           <Form.Item
-            name="username"
-            rules={[{ required: true, message: 'Please input your username!' }]}
+            name="userId"
+            rules={[
+              { validator: validateUserId }
+            ]}
+            validateTrigger="onChange"
           >
             <Input 
               prefix={<UserOutlined />} 
-              placeholder="Username"
+              placeholder="User ID"
               size="large"
+              onChange={e => {
+                // Force lowercase while typing
+                const value = e.target.value;
+                e.target.value = value.toLowerCase();
+              }}
             />
           </Form.Item>
 
@@ -52,6 +81,7 @@ const Login: React.FC = () => {
               prefix={<LockOutlined />}
               placeholder="Password"
               size="large"
+              value="123456"
             />
           </Form.Item>
 

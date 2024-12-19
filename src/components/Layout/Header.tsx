@@ -1,28 +1,41 @@
 import React from 'react';
-import { Button, Dropdown, MenuProps } from 'antd';
+import { Button, Dropdown, MenuProps, message } from 'antd';
 import { DownOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../../stores/authStore';
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
+  const { userId, logout } = useAuthStore();
 
   const items: MenuProps['items'] = [
+    {
+      key: 'biography',
+      label: 'My Biography',
+    },
     {
       key: 'history',
       label: 'Conversation History',
     },
     {
       key: 'logs',
-      label: 'Logs',
-    },
-    {
-      key: 'biography',
-      label: 'My Biography',
+      label: 'Execution Logs',
     },
   ];
 
   const handleMenuClick: MenuProps['onClick'] = (e) => {
-    console.log('clicked', e.key);
+    if (e.key === 'biography') {
+      message.info('Check files under /data/' + userId + '/');
+    } else if (e.key === 'history') {
+      message.info('Check files under /logs/' + userId + '/execution_logs/chat_history.log');
+    } else if (e.key === 'logs') {
+      message.info('Check files under /logs/' + userId + '/execution_logs/');
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
   };
 
   return (
@@ -32,9 +45,12 @@ const Header: React.FC = () => {
           View Data <DownOutlined />
         </Button>
       </Dropdown>
-      <Button onClick={() => navigate('/login')}>
-        Logout
-      </Button>
+      <div className="flex items-center gap-2">
+        <span className="dark:text-white">{userId}</span>
+        <Button onClick={handleLogout}>
+          Logout
+        </Button>
+      </div>
     </header>
   );
 };
