@@ -3,9 +3,10 @@ import { Button } from 'antd';
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
+  disabled?: boolean;
 }
 
-const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage }) => {
+const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled }) => {
   const [message, setMessage] = useState('');
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -39,12 +40,14 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage }) => {
           onKeyDown={handleKeyDown}
           placeholder="Type a message..."
           className="flex-grow min-h-[40px] max-h-[160px] resize-none rounded-lg border border-gray-300 dark:border-gray-600 p-2 focus:outline-none focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+          disabled={disabled}
         />
       </div>
       <Button 
         type="primary"
         onClick={handleSend}
         className="mt-2"
+        disabled={disabled}
       >
         Send
       </Button>

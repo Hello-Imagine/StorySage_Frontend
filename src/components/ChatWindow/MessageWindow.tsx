@@ -1,11 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import ChatMessage from './ChatMessage';
-
-interface Message {
-  id: string;
-  text: string;
-  isUser: boolean;
-}
+import { Message } from '../../types/message';
 
 interface MessageWindowProps {
   messages: Message[];
@@ -27,9 +22,8 @@ const MessageWindow: React.FC<MessageWindowProps> = ({ messages }) => {
       {messages.map((message, index) => (
         <ChatMessage
           key={message.id}
-          message={message.text}
-          isUser={message.isUser}
-          isMostRecent={index === messages.length - 1 && !message.isUser}
+          message={message}
+          isMostRecent={index === messages.length - 1 && message.role === 'Interviewer'}
         />
       ))}
       <div ref={messagesEndRef} />

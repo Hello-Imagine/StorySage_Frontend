@@ -1,6 +1,7 @@
 import React from 'react';
 import { Form, Input, Button, Card, message } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
+// eslint-disable-next-line
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 import { apiClient } from '../../utils/api';
@@ -95,13 +96,14 @@ const Login: React.FC = () => {
               Log in
             </Button>
           </Form.Item>
-
-          <div className="text-center">
+          
+          {/* TODO: uncomment this when register is implemented */}
+          {/* <div className="text-center">
             <span className="dark:text-gray-400">Don't have an account? </span>
             <Link to="/register" className="text-blue-600 hover:text-blue-700 dark:text-blue-400">
               Register now
             </Link>
-          </div>
+          </div> */}
         </Form>
       </Card>
     </div>

@@ -22,9 +22,11 @@ function App() {
   }, []);
 
   const AuthenticatedLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-    <div className="flex flex-col h-screen bg-white dark:bg-gray-900">
+    <div className="flex flex-col h-screen">
       <Header />
-      {children}
+      <div className="flex-1 overflow-hidden">
+        {children}
+      </div>
     </div>
   );
 

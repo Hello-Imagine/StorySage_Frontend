@@ -13,6 +13,8 @@ const Home: React.FC = () => {
       message.error('User ID not found! Please login.');
       navigate('/login');
       return;
+    } else {
+      navigate('/chat');
     }
   };
 
