@@ -3,6 +3,7 @@ import { Form, Input, Button, Card, message } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
+import { apiClient } from '../../utils/api';
 
 interface LoginForm {
   userId: string;
@@ -16,16 +17,20 @@ const Login: React.FC = () => {
 
   const onFinish = async (values: LoginForm) => {
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // TODO: Always login successfully for now
-      login(values.userId.toLowerCase());
+      const data = await apiClient('LOGIN', {
+        method: 'POST',
+        requireAuth: false,
+        body: JSON.stringify({
+          user_id: values.userId.toLowerCase(),
+          password: values.password,
+        }),
+      });
+
+      login(values.userId.toLowerCase(), data.access_token);
       message.success('Login successful with userId: ' + values.userId.toLowerCase());
       navigate('/');
     } catch (error) {
-      message.error('Login failed. Please try again.');
-      message.error(error as string);
+      message.error('Login failed: ' + (error as Error).message);
     }
   };
 
@@ -81,7 +86,7 @@ const Login: React.FC = () => {
               prefix={<LockOutlined />}
               placeholder="Password"
               size="large"
-              value="123456"
+              value="123456" // TODO: remove this
             />
           </Form.Item>
 

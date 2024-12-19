@@ -1,10 +1,38 @@
 import React from 'react';
-import { Button, Row, Col } from 'antd';
+import { Button, Row, Col, message } from 'antd';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../stores/authStore';
+import { useSessionStore } from '../stores/sessionStore';
+import { apiClient } from '../utils/api';
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
+  const userId = useAuthStore(state => state.userId);
+  const setSessionId = useSessionStore(state => state.setSessionId);
+
+  const handleStart = async () => {
+    if (!userId) {
+      message.error('User ID not found! Please login.');
+      navigate('/login');
+      return;
+    }
+
+    try {
+      const data = await apiClient('SESSIONS', {
+        method: 'POST',
+        body: JSON.stringify({
+          user_id: userId,
+          content: "Hello, I'd like to start an interview."
+        }),
+      });
+      
+      setSessionId(data.session_id);
+      navigate('/chat');
+    } catch (error) {
+      message.error('Failed to start session: ' + (error as Error).message);
+    }
+  };
 
   return (
     <div className="h-full bg-gradient-to-b from-gray-100 to-blue-100 dark:from-gray-800 dark:to-blue-950">
@@ -46,7 +74,7 @@ const Home: React.FC = () => {
                 type="primary"
                 size="large"
                 className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
-                onClick={() => navigate('/chat')}
+                onClick={handleStart}
               >
                 Let's Start
               </Button>
