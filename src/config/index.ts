@@ -13,7 +13,7 @@ const config: Config = {
   API_ENDPOINTS: {
     SESSIONS: '/sessions',
     MESSAGES: '/messages',
-    LOGIN: '/login',
+    LOGIN: '/user/login',
   },
 };
 

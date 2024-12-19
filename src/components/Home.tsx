@@ -3,34 +3,16 @@ import { Button, Row, Col, message } from 'antd';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
-import { useSessionStore } from '../stores/sessionStore';
-import { apiClient } from '../utils/api';
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
   const userId = useAuthStore(state => state.userId);
-  const setSessionId = useSessionStore(state => state.setSessionId);
 
   const handleStart = async () => {
     if (!userId) {
       message.error('User ID not found! Please login.');
       navigate('/login');
       return;
-    }
-
-    try {
-      const data = await apiClient('SESSIONS', {
-        method: 'POST',
-        body: JSON.stringify({
-          user_id: userId,
-          content: "Hello, I'd like to start an interview."
-        }),
-      });
-      
-      setSessionId(data.session_id);
-      navigate('/chat');
-    } catch (error) {
-      message.error('Failed to start session: ' + (error as Error).message);
     }
   };
 
