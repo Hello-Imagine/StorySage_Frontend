@@ -22,12 +22,19 @@ Ensure you have the following installed on your machine:
 - [Node.js](https://nodejs.org/) (v16 or higher recommended)
 - [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/)
 
-## Installation
+## Setup
 
 Install dependencies:
 
 ```bash
 npm install
+```
+
+Create a `.env` file in the root directory with the following content:
+
+```plaintext
+VITE_OPENAI_API_KEY=[your openai api key]
+VITE_API_BASE_URL=[your api base url] (http://localhost:8000 for local development)
 ```
 
 ## Usage
