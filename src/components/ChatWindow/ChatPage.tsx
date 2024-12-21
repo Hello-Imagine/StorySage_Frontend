@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 const ChatPage: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [historicalMessagesCount, setHistoricalMessagesCount] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -19,6 +20,7 @@ const ChatPage: React.FC = () => {
           method: 'GET',
         });
         setMessages(data);
+        setHistoricalMessagesCount(data.length);
       } catch (error) {
         message.error('Failed to fetch messages: ' + (error as Error).message);
       }
@@ -76,7 +78,10 @@ const ChatPage: React.FC = () => {
           <Spin size="large" />
         </div>
       )}
-      <MessageWindow messages={messages} />
+      <MessageWindow 
+        messages={messages} 
+        historicalMessagesCount={historicalMessagesCount}
+      />
       <div className="relative">
         <ChatInput onSendMessage={handleSendMessage} disabled={isLoading} />
       </div>
@@ -85,7 +90,7 @@ const ChatPage: React.FC = () => {
         type="primary"
         tooltip="End Session"
         onClick={handleEndSession}
-        style={{ right: 24, bottom: 100 }}
+        style={{ left: 24, bottom: 140 }}
       />
     </div>
   );
