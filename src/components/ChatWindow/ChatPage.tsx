@@ -56,18 +56,34 @@ const ChatPage: React.FC = () => {
 
   const handleEndSession = async () => {
     try {
+      message.loading({ 
+        content: '📝 Writing the biography. 😃 DON\'T QUIT', 
+        key: 'bioUpdate',
+        duration: 0 // This makes the message persist until we manually close it
+      });
+
       const response = await apiClient('END_SESSION', {
         method: 'POST',
       });
+
       if (response.status === "success") {
-        message.success('Session ended successfully! Waiting for 3-5 minutes for your biography...');
-        await new Promise(resolve => setTimeout(resolve, 3000));
+        message.success({ 
+          content: 'Session ended successfully!',
+          key: 'bioUpdate', // Using same key will replace the loading message
+          duration: 2 
+        });
         navigate('/');
       } else {
-        message.error('Failed to end session: ' + response.message);
+        message.error({ 
+          content: 'Failed to end session: ' + response.message,
+          key: 'bioUpdate'
+        });
       }
     } catch (error) {
-      message.error('Failed to end session: ' + (error as Error).message);
+      message.error({ 
+        content: 'Failed to end session: ' + (error as Error).message,
+        key: 'bioUpdate'
+      });
     }
   };
 
