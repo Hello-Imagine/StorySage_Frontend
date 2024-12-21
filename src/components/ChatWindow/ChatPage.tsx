@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { message, Spin, FloatButton } from 'antd';
-import { LoadingOutlined, StopOutlined } from '@ant-design/icons';
+import { StopOutlined } from '@ant-design/icons';
 import MessageWindow from './MessageWindow';
 import ChatInput from './ChatInput';
 import { Message } from '../../types/message';
@@ -98,7 +98,7 @@ const ChatPage: React.FC = () => {
       <div className="relative">
         {isLoading && (
           <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2">
-            <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />
+            <Spin size="large" fullscreen/>
           </div>
         )}
         <ChatInput onSendMessage={handleSendMessage} disabled={isLoading} />
