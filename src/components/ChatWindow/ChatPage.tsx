@@ -5,21 +5,11 @@ import MessageWindow from './MessageWindow';
 import ChatInput from './ChatInput';
 import { Message } from '../../types/message';
 import { apiClient } from '../../utils/api';
-import { useSessionStore } from '../../stores/sessionStore';
-import { useAuthStore } from '../../stores/authStore';
-import config from '../../config/index';
 import { useNavigate } from 'react-router-dom';
-
-interface SessionResponse {
-  session_id: string;
-  message: Message;
-}
 
 const ChatPage: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const { sessionId, setSessionId } = useSessionStore();
-  const userId = useAuthStore(state => state.userId);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -48,27 +38,13 @@ const ChatPage: React.FC = () => {
       };
 
       setMessages(prev => [...prev, userMessage]);
-
-      if (!sessionId) {
-        const response: SessionResponse = await apiClient('SESSIONS', {
-          method: 'POST',
-          body: JSON.stringify({
-            user_id: userId,
-            content,
-          }),
-        });
-        setSessionId(response.session_id);
-        setMessages(prev => [...prev, response.message]);
-      } else {
-        const response: Message = await apiClient('MESSAGES', {
-          method: 'POST',
-          body: JSON.stringify({
-            session_id: sessionId,
-            content,
-          }),
-        });
-        setMessages(prev => [...prev, response]);
-      }
+      const response: Message = await apiClient('MESSAGES', {
+        method: 'POST',
+        body: JSON.stringify({
+          content,
+        }),
+      });
+      setMessages(prev => [...prev, response]);
     } catch (error) {
       message.error('Failed to send message: ' + (error as Error).message);
     } finally {
@@ -77,16 +53,17 @@ const ChatPage: React.FC = () => {
   };
 
   const handleEndSession = async () => {
-    if (!sessionId) return;
-
     try {
-      await apiClient(config.API_ENDPOINTS.END_SESSION(sessionId), {
+      const response = await apiClient('END_SESSION', {
         method: 'POST',
       });
-      message.success('Session ended successfully! Waiting for 3-5 minutes for your biography...');
-      // Wait before navigating
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      navigate('/');
+      if (response.status === "success") {
+        message.success('Session ended successfully! Waiting for 3-5 minutes for your biography...');
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        navigate('/');
+      } else {
+        message.error('Failed to end session: ' + response.message);
+      }
     } catch (error) {
       message.error('Failed to end session: ' + (error as Error).message);
     }
@@ -94,24 +71,22 @@ const ChatPage: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full">
+      {isLoading && (
+        <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
+          <Spin size="large" />
+        </div>
+      )}
       <MessageWindow messages={messages} />
       <div className="relative">
-        {isLoading && (
-          <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2">
-            <Spin size="large" fullscreen/>
-          </div>
-        )}
         <ChatInput onSendMessage={handleSendMessage} disabled={isLoading} />
       </div>
-      {sessionId && (
-        <FloatButton
-          icon={<StopOutlined />}
-          type="primary"
-          tooltip="End Session"
-          onClick={handleEndSession}
-          style={{ right: 24, bottom: 100 }}
-        />
-      )}
+      <FloatButton
+        icon={<StopOutlined />}
+        type="primary"
+        tooltip="End Session"
+        onClick={handleEndSession}
+        style={{ right: 24, bottom: 100 }}
+      />
     </div>
   );
 };

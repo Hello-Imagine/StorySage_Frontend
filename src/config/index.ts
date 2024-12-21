@@ -1,20 +1,18 @@
 interface Config {
   API_BASE_URL: string;
   API_ENDPOINTS: {
-    SESSIONS: string;
     MESSAGES: string;
     LOGIN: string;
-    END_SESSION: (sessionId: string) => string;
+    END_SESSION: string;
   };
 }
 
 const config: Config = {
   API_BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000',
   API_ENDPOINTS: {
-    SESSIONS: '/sessions',
     MESSAGES: '/messages',
     LOGIN: '/user/login',
-    END_SESSION: (sessionId: string) => `/sessions/${sessionId}/end`,
+    END_SESSION: '/sessions/end',
   },
 };
 
