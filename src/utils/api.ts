@@ -11,6 +11,11 @@ class ApiError extends Error {
   }
 }
 
+const handleUnauthorized = () => {
+  useAuthStore.getState().logout();
+  window.location.href = '/';
+};
+
 export async function apiClient(
   endpoint: keyof typeof import('../config').default['API_ENDPOINTS'] | string,
   config: RequestConfig = {}
@@ -36,7 +41,11 @@ export async function apiClient(
   );
 
   if (!response.ok) {
-    throw new ApiError(response.status, 
+    if (response.status === 401) {
+      handleUnauthorized();
+    }
+    throw new ApiError(
+      response.status,
       response.status === 401 ? 'Unauthorized' : 'Request failed'
     );
   }
