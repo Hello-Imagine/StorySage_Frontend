@@ -1,6 +1,6 @@
 import { ConfigProvider, theme } from 'antd';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import ChatPage from './components/ChatWindow/ChatPage';
+import ChatPage from './components/Chat/ChatPage';
 import Login from './components/User/Login';
 import Register from './components/User/Register';
 import Home from './components/Home';

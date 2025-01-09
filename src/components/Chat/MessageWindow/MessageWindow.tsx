@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import ChatMessage from './ChatMessage';
-import { Message } from '../../types/message';
+import { Message } from '../../../types/message';
 
 interface MessageWindowProps {
   messages: Message[];

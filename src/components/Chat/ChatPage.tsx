@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { message, Spin } from 'antd';
-import MessageWindow from './MessageWindow';
+import MessageWindow from './MessageWindow/MessageWindow';
 import ChatInput from './ChatInput';
 import { Message } from '../../types/message';
 import { apiClient } from '../../utils/api';
