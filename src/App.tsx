@@ -52,6 +52,13 @@ function App() {
                 </AuthenticatedLayout>
               ) : <Navigate to="/login" />
             } />
+            <Route path="/user_chat" element={
+              isAuthenticated ? (
+                <AuthenticatedLayout>
+                  <ChatPage />
+                </AuthenticatedLayout>
+              ) : <Navigate to="/login" />
+            } />
             <Route path="/" element={
               isAuthenticated ? (
                 <AuthenticatedLayout>

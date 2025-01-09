@@ -1,32 +1,48 @@
 import React, { useState, useEffect } from 'react';
 import { message, Spin } from 'antd';
 import MessageWindow from './MessageWindow/MessageWindow';
+import InterviewWindow from './InterviewWindow/InterviewWindow';
 import ChatInput from './ChatInput';
 import { Message } from '../../types/message';
 import { apiClient } from '../../utils/api';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const ChatPage: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [historicalMessagesCount, setHistoricalMessagesCount] = useState(0);
   const navigate = useNavigate();
+  const location = useLocation();
+  const isInterviewMode = location.pathname === '/user_chat';
 
   useEffect(() => {
     const fetchMessages = async () => {
       try {
-        const data = await apiClient('MESSAGES', {
-          method: 'GET',
-        });
-        setMessages(data);
-        setHistoricalMessagesCount(data.length);
+        if (isInterviewMode) {
+          // Set default welcome message for interview mode
+          const welcomeMessage: Message = {
+            id: 'welcome',
+            content: "Hello! I'm your AI interviewer today. I'll be asking you some questions to learn more about your experience to help you write your biography. Nice to meet you here 😀!",
+            created_at: new Date().toISOString(),
+            role: 'Interviewer'
+          };
+          setMessages([welcomeMessage]);
+          setHistoricalMessagesCount(0);
+        } else {
+          // Fetch historical messages for chat mode
+          const data = await apiClient('MESSAGES', {
+            method: 'GET',
+          });
+          setMessages(data);
+          setHistoricalMessagesCount(data.length);
+        }
       } catch (error) {
         message.error('Failed to fetch messages: ' + (error as Error).message);
       }
     };
 
     fetchMessages();
-  }, []);
+  }, [isInterviewMode]);
 
   const handleSendMessage = async (content: string) => {
     try {
@@ -86,6 +102,10 @@ const ChatPage: React.FC = () => {
     }
   };
 
+  const getMostRecentInterviewerMessage = () => {
+    return messages.filter(msg => msg.role === 'Interviewer').slice(-1)[0];
+  };
+
   return (
     <div className="flex flex-col h-full">
       {isLoading && (
@@ -93,10 +113,18 @@ const ChatPage: React.FC = () => {
           <Spin size="large" />
         </div>
       )}
-      <MessageWindow 
-        messages={messages} 
-        historicalMessagesCount={historicalMessagesCount}
-      />
+      
+      {isInterviewMode ? (
+        <InterviewWindow 
+          latestMessage={getMostRecentInterviewerMessage()}
+        />
+      ) : (
+        <MessageWindow 
+          messages={messages} 
+          historicalMessagesCount={historicalMessagesCount}
+        />
+      )}
+
       <div className="relative">
         <ChatInput 
           onSendMessage={handleSendMessage} 

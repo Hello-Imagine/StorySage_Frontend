@@ -14,7 +14,7 @@ const Home: React.FC = () => {
       navigate('/login');
       return;
     } else {
-      navigate('/chat');
+      navigate('/user_chat');
     }
   };
 
