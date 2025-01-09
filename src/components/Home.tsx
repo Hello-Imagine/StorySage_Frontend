@@ -24,7 +24,7 @@ const Home: React.FC = () => {
         <Row gutter={16}>
           <Col xs={16} sm={12} md={10} lg={10} className="flex justify-center">
             <img
-              src="/chat.png"
+              src="stickers/chat.png"
               alt="Platform Illustration"
               className="w-full object-cover"
             />

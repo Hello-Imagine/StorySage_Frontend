@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { message, Spin, FloatButton } from 'antd';
-import { StopOutlined } from '@ant-design/icons';
+import { message, Spin } from 'antd';
 import MessageWindow from './MessageWindow';
 import ChatInput from './ChatInput';
 import { Message } from '../../types/message';
@@ -99,15 +98,12 @@ const ChatPage: React.FC = () => {
         historicalMessagesCount={historicalMessagesCount}
       />
       <div className="relative">
-        <ChatInput onSendMessage={handleSendMessage} disabled={isLoading} />
+        <ChatInput 
+          onSendMessage={handleSendMessage} 
+          onEndSession={handleEndSession}
+          disabled={isLoading} 
+        />
       </div>
-      <FloatButton
-        icon={<StopOutlined />}
-        type="primary"
-        tooltip="End Session"
-        onClick={handleEndSession}
-        style={{ left: 24, bottom: 140 }}
-      />
     </div>
   );
 };

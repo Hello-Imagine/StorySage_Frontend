@@ -1,17 +1,17 @@
-import React, { useState, useRef, KeyboardEvent } from 'react';
-import { Button } from 'antd';
-import { AudioOutlined, AudioMutedOutlined } from '@ant-design/icons';
+import React, { useState, useRef, KeyboardEvent, useEffect } from 'react';
 import { transcribeAudio } from '../../utils/api';
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
+  onEndSession: () => void;
   disabled?: boolean;
 }
 
-const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled }) => {
+const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, onEndSession, disabled }) => {
   const [message, setMessage] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isTypingMode, setIsTypingMode] = useState(false);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -20,19 +20,15 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled }) => {
     if (message.trim()) {
       onSendMessage(message);
       setMessage('');
+      // Switch back to voice mode after sending
+      setIsTypingMode(false);
     }
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter') {
-      if ((e.metaKey || e.ctrlKey)) {
-        // Add new line on Cmd/Ctrl + Enter
-        setMessage(prev => prev + '\n');
-      } else {
-        // Send message on Enter
-        e.preventDefault();
-        handleSend();
-      }
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
     }
   };
 
@@ -54,7 +50,16 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled }) => {
         try {
           setIsProcessing(true);
           const transcription = await transcribeAudio(audioBlob);
+          // Add transcription to message
           setMessage(prev => prev + (prev ? ' ' : '') + transcription);
+          // Switch to typing mode after transcription
+          setIsTypingMode(true);
+          setTimeout(() => {
+            if (textAreaRef.current) {
+              textAreaRef.current.focus();
+              adjustTextAreaHeight();
+            }
+          }, 0);
         } catch (error) {
           console.error('Transcription error:', error);
           // Handle error (you might want to show a notification to the user)
@@ -89,35 +94,100 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled }) => {
     }
   };
 
+  const toggleMode = () => {
+    setIsTypingMode(!isTypingMode);
+    if (!isTypingMode) {
+      setTimeout(() => textAreaRef.current?.focus(), 0);
+    }
+  };
+
+  const adjustTextAreaHeight = () => {
+    const textarea = textAreaRef.current;
+    if (textarea) {
+      textarea.style.height = 'inherit';
+      const computed = window.getComputedStyle(textarea);
+      const height = parseInt(computed.getPropertyValue('border-top-width'), 10)
+                   + parseInt(computed.getPropertyValue('padding-top'), 10)
+                   + textarea.scrollHeight
+                   + parseInt(computed.getPropertyValue('padding-bottom'), 10)
+                   + parseInt(computed.getPropertyValue('border-bottom-width'), 10);
+
+      const maxHeight = 200; // matches Tailwind chat-input-max
+      textarea.style.height = Math.min(height, maxHeight) + 'px';
+    }
+  };
+
+  const handleTextAreaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setMessage(e.target.value);
+    adjustTextAreaHeight();
+  };
+
+  useEffect(() => {
+    if (isTypingMode) {
+      adjustTextAreaHeight();
+    }
+  }, [isTypingMode]);
+
   return (
-    <div className="min-h-[64px] max-h-[200px] flex flex-col bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4">
-      <div className="flex-grow flex gap-2">
-        <textarea
-          ref={textAreaRef}
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Type a message here. (Cmd/Ctrl + Enter to add a new line)"
-          className="flex-grow min-h-[40px] max-h-[160px] resize-none rounded-lg border border-gray-300 dark:border-gray-600 p-2 focus:outline-none focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-          disabled={disabled || isProcessing}
-        />
-        <Button
-          icon={isRecording ? <AudioMutedOutlined /> : <AudioOutlined />}
-          onClick={toggleRecording}
-          disabled={disabled || isProcessing}
-          danger={isRecording}
-          className="flex items-center justify-center"
-        />
+    <div className="min-h-chat-input-min max-h-chat-input-max flex items-stretch bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-4 py-2">
+      <div className="w-1/5 flex items-center justify-center">
+        <div className="w-12 h-12 flex items-center justify-center">
+          <img 
+            src="/icon/stop.png" 
+            alt="End Session" 
+            className="h-8 w-8 cursor-pointer" 
+            onClick={onEndSession}
+          />
+        </div>
       </div>
-      <Button 
-        type="primary"
-        onClick={handleSend}
-        className="mt-2"
-        disabled={disabled || isProcessing}
-        loading={isProcessing}
-      >
-        Send
-      </Button>
+
+      {isTypingMode ? (
+        <>
+          <textarea
+            ref={textAreaRef}
+            value={message}
+            onChange={handleTextAreaChange}
+            onKeyDown={handleKeyDown}
+            placeholder="Type a message..."
+            className="flex-1 min-h-[48px] max-h-[144px] resize-none rounded-lg border border-gray-300 dark:border-gray-600 p-2 focus:outline-none focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white mx-2 overflow-y-auto"
+            disabled={disabled || isProcessing}
+          />
+          <div className="w-1/5 flex items-center justify-center">
+            <div className="w-12 h-12 flex items-center justify-center">
+              <img 
+                src="/icon/voice_start.png"
+                alt="Switch to Voice" 
+                className="h-8 w-8 cursor-pointer" 
+                onClick={toggleMode}
+              />
+            </div>
+          </div>
+        </>
+      ) : (
+        <>
+          <button
+            onClick={toggleRecording}
+            disabled={disabled || isProcessing}
+            className="flex-1 h-12 flex items-center justify-center mx-2"
+          >
+            <img 
+              src={isRecording ? "/icon/voice_stop.png" : "/icon/voice_start.png"} 
+              alt="Voice" 
+              className="h-8 w-8" 
+            />
+          </button>
+          <div className="w-1/5 flex items-center justify-center">
+            <div className="w-12 h-12 flex items-center justify-center">
+              <img 
+                src="/icon/keyboard.png" 
+                alt="Switch to Typing" 
+                className="h-8 w-8 cursor-pointer" 
+                onClick={toggleMode}
+              />
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };

@@ -6,7 +6,12 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      height: {
+        'chat-input-min': '64px',
+        'chat-input-max': '200px',
+      },
+    },
   },
   plugins: [],
 }
