@@ -22,6 +22,12 @@ FROM nginx:alpine
 COPY --from=build /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
+# Add script to handle nginx startup
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 EXPOSE 80
 
+# Use both the custom entrypoint and the original nginx entrypoint
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["nginx", "-g", "daemon off;"] 
