@@ -1,5 +1,6 @@
 import React, { useState, useRef, KeyboardEvent, useEffect } from 'react';
 import { transcribeAudio } from '../../utils/api';
+import { Popconfirm } from 'antd';
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
@@ -132,12 +133,20 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, onEndSession, disa
     <div className="min-h-chat-input-min max-h-chat-input-max flex items-stretch bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-4 py-2">
       <div className="w-1/5 flex items-center justify-center">
         <div className="w-12 h-12 flex items-center justify-center">
-          <img 
-            src="/icon/stop.png" 
-            alt="End Session" 
-            className="h-8 w-8 cursor-pointer" 
-            onClick={onEndSession}
-          />
+          <Popconfirm
+            title="End Session"
+            description="Are you sure you want to end this session?"
+            onConfirm={onEndSession}
+            okText="Yes"
+            cancelText="No"
+            placement="topRight"
+          >
+            <img 
+              src="/icon/stop.png" 
+              alt="End Session" 
+              className="h-8 w-8 cursor-pointer" 
+            />
+          </Popconfirm>
         </div>
       </div>
 

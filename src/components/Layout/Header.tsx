@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button, Dropdown, MenuProps, message } from 'antd';
-import { DownOutlined } from '@ant-design/icons';
+import { DownOutlined, HomeOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 
@@ -45,8 +45,13 @@ const Header: React.FC = () => {
           View Data <DownOutlined />
         </Button>
       </Dropdown>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-4">
         <span className="dark:text-white">{userId}</span>
+        <Button 
+          type="default"
+          icon={<HomeOutlined className="text-lg" />}
+          onClick={() => navigate('/')}
+        />
         <Button onClick={handleLogout}>
           Logout
         </Button>
