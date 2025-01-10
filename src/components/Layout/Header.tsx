@@ -25,7 +25,7 @@ const Header: React.FC = () => {
 
   const handleMenuClick: MenuProps['onClick'] = (e) => {
     if (e.key === 'biography') {
-      message.info('Check files under /data/' + userId + '/');
+      navigate('/biography');
     } else if (e.key === 'history') {
       message.info('Check files under /logs/' + userId + '/execution_logs/chat_history.log');
     } else if (e.key === 'logs') {

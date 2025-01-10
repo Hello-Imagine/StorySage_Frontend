@@ -8,6 +8,7 @@ import Header from './components/Layout/Header';
 import './App.css';
 import { useEffect, useState } from 'react';
 import { useAuthStore } from './stores/authStore';
+import BiographyPage from './components/Biography/BiographyPage';
 
 function App() {
   const [isDark, setIsDark] = useState(window.matchMedia('(prefers-color-scheme: dark)').matches);
@@ -63,6 +64,13 @@ function App() {
               isAuthenticated ? (
                 <AuthenticatedLayout>
                   <Home />
+                </AuthenticatedLayout>
+              ) : <Navigate to="/login" />
+            } />
+            <Route path="/biography" element={
+              isAuthenticated ? (
+                <AuthenticatedLayout>
+                  <BiographyPage />
                 </AuthenticatedLayout>
               ) : <Navigate to="/login" />
             } />

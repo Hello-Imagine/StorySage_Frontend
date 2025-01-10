@@ -4,6 +4,7 @@ interface Config {
     MESSAGES: string;
     LOGIN: string;
     END_SESSION: string;
+    BIOGRAPHY_LATEST: string;
   };
 }
 
@@ -13,6 +14,7 @@ const config: Config = {
     MESSAGES: '/messages',
     LOGIN: '/user/login',
     END_SESSION: '/sessions/end',
+    BIOGRAPHY_LATEST: '/biography/latest',
   },
 };
 
