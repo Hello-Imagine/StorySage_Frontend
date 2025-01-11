@@ -50,7 +50,13 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, onEndSession, disa
         const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm' });
         try {
           setIsProcessing(true);
-          const transcription = await transcribeAudio(audioBlob);
+          
+          // Create FormData and append audio
+          const formData = new FormData();
+          formData.append('audio', audioBlob, 'audio.webm');
+          
+          const transcription = await transcribeAudio(formData);
+          
           // Add transcription to message
           setMessage(prev => prev + (prev ? ' ' : '') + transcription);
           // Switch to typing mode after transcription

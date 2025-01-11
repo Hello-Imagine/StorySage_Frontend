@@ -30,12 +30,7 @@ Install dependencies:
 npm install
 ```
 
-Create a `.env` file in the root directory with the following content:
-
-```plaintext
-VITE_OPENAI_API_KEY=[your openai api key]
-VITE_API_BASE_URL=[your api base url] (http://localhost:8000 for local development)
-```
+Create a `.env` file in the root directory. Copy the `.env.example` file and fill in the values.
 
 ## Usage
 
