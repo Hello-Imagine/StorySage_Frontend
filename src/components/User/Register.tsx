@@ -2,6 +2,9 @@ import React from 'react';
 import { Form, Input, Button, Card, message } from 'antd';
 import { UserOutlined, LockOutlined, MailOutlined } from '@ant-design/icons';
 import { Link, useNavigate } from 'react-router-dom';
+import { apiClient } from '../../utils/api';
+import { ApiError } from '../../utils/api';
+import { useAuthStore } from '../../stores/authStore';
 
 interface RegisterForm {
   userId: string;
@@ -12,19 +15,32 @@ interface RegisterForm {
 
 const Register: React.FC = () => {
   const navigate = useNavigate();
+  const login = useAuthStore(state => state.login);
   const [form] = Form.useForm();
 
   const onFinish = async (values: RegisterForm) => {
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-      console.log(values);
-      // TODO: Always register successfully for now
-      message.success('The registration is successful!');
+      const response = await apiClient('REGISTER', {
+        method: 'POST',
+        requireAuth: false,
+        body: JSON.stringify({
+          user_id: values.userId.toLowerCase(),
+          email: values.email,
+          password: values.password,
+        }),
+      });
+
+      // Log the user in with the received token
+      login(values.userId.toLowerCase(), response.access_token);
+      message.success('Registration successful!');
       navigate('/');
     } catch (error) {
-      message.error('Registration failed. Please try again.');
-      message.error(error as string);
+      console.error('Registration error:', error);
+      if (error instanceof ApiError) {
+        message.error(error.message);
+      } else {
+        message.error('Registration failed. Please try again.');
+      }
     }
   };
 

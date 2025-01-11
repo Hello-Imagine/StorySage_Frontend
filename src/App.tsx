@@ -64,7 +64,7 @@ function App() {
                 <AuthenticatedLayout>
                   <Home />
                 </AuthenticatedLayout>
-              ) : <Navigate to="/login" />
+              ) : <Navigate to="/register" />
             } />
           </Routes>
         </Router>

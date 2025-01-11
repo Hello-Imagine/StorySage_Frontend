@@ -20,7 +20,7 @@ const Login: React.FC = () => {
     try {
       const data = await apiClient('LOGIN', {
         method: 'POST',
-        requireAuth: false,
+        requireAuth: true,
         body: JSON.stringify({
           user_id: values.userId.toLowerCase(),
           password: values.password,

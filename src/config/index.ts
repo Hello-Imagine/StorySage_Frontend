@@ -3,6 +3,7 @@ interface Config {
   API_ENDPOINTS: {
     MESSAGES: string;
     LOGIN: string;
+    REGISTER: string;
     END_SESSION: string;
   };
 }
@@ -12,6 +13,7 @@ const config: Config = {
   API_ENDPOINTS: {
     MESSAGES: '/messages',
     LOGIN: '/user/login',
+    REGISTER: '/user/register',
     END_SESSION: '/sessions/end',
   },
 };

@@ -5,7 +5,7 @@ interface RequestConfig extends RequestInit {
   requireAuth?: boolean;
 }
 
-class ApiError extends Error {
+export class ApiError extends Error {
   constructor(public status: number, message: string) {
     super(message);
   }
@@ -40,17 +40,19 @@ export async function apiClient(
     }
   );
 
+  const data = await response.json().catch(() => null);
+
   if (!response.ok) {
-    if (response.status === 401) {
-      handleUnauthorized();
-    }
+    // if (response.status === 401) {
+    //   handleUnauthorized();
+    // }
     throw new ApiError(
       response.status,
-      response.status === 401 ? 'Unauthorized' : 'Request failed'
+      data?.detail || data?.message || 'Request failed'
     );
   }
 
-  return response.json();
+  return data;
 }
 
 export const transcribeAudio = async (audioBlob: Blob): Promise<string> => {
