@@ -5,6 +5,7 @@ interface Config {
     LOGIN: string;
     END_SESSION: string;
     BIOGRAPHY_LATEST: string;
+    TRANSCRIBE: string;
   };
 }
 
@@ -15,6 +16,7 @@ const config: Config = {
     LOGIN: '/user/login',
     END_SESSION: '/sessions/end',
     BIOGRAPHY_LATEST: '/biography/latest',
+    TRANSCRIBE: '/transcribe',
   },
 };
 
