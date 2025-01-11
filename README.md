@@ -39,17 +39,14 @@ VITE_API_BASE_URL=[your api base url] (http://localhost:8000 for local developme
 
 ## Usage
 
-To start the development server, run:
+Local Development:
 
-```bash
-npm run dev
-```
+- Without Docker: Run `npm run dev` (will run on port 5173)
+- With Docker: Run `bash deploy.sh local` (will run on port 8080)
 
-Open your browser and navigate to:
+Production Deployment:
 
-```plaintext
-http://localhost:5173
-```
+- Run `bash deploy.sh production`
 
 ## Scripts
 

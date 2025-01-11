@@ -215,7 +215,12 @@ const BiographyPage: React.FC = () => {
         // setBiography(mockBiographyData); // Use mock data for testing
       } catch (error) {
         console.error('Error fetching biography:', error);
-        setError(error instanceof Error ? error.message : 'Failed to load biography');
+        // Check if it's a 404 error
+        if (error instanceof Error && 'status' in error && error.status === 404) {
+          setBiography(null);
+        } else {
+          setError(error instanceof Error ? error.message : 'Failed to load biography');
+        }
       } finally {
         setLoading(false);
       }
