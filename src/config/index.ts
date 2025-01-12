@@ -3,6 +3,7 @@ interface Config {
   API_ENDPOINTS: {
     MESSAGES: string;
     LOGIN: string;
+    REGISTER: string;
     END_SESSION: string;
     BIOGRAPHY_LATEST: string;
     TRANSCRIBE: string;
@@ -14,6 +15,7 @@ const config: Config = {
   API_ENDPOINTS: {
     MESSAGES: '/messages',
     LOGIN: '/user/login',
+    REGISTER: '/user/register',
     END_SESSION: '/sessions/end',
     BIOGRAPHY_LATEST: '/biography/latest',
     TRANSCRIBE: '/transcribe',

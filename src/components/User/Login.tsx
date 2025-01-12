@@ -20,7 +20,7 @@ const Login: React.FC = () => {
     try {
       const data = await apiClient('LOGIN', {
         method: 'POST',
-        requireAuth: false,
+        requireAuth: true,
         body: JSON.stringify({
           user_id: values.userId.toLowerCase(),
           password: values.password,
@@ -98,12 +98,12 @@ const Login: React.FC = () => {
           </Form.Item>
           
           {/* TODO: uncomment this when register is implemented */}
-          {/* <div className="text-center">
+          <div className="text-center">
             <span className="dark:text-gray-400">Don't have an account? </span>
             <Link to="/register" className="text-blue-600 hover:text-blue-700 dark:text-blue-400">
               Register now
             </Link>
-          </div> */}
+          </div>
         </Form>
       </Card>
     </div>

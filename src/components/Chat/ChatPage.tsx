@@ -44,9 +44,12 @@ const ChatPage: React.FC = () => {
     fetchMessages();
   }, [isInterviewMode]);
 
+  // When a new message is sent, we send it to the server and add it to the messages array
   const handleSendMessage = async (content: string) => {
     try {
       setIsLoading(true);
+
+      // Create a new user message
       const userMessage: Message = {
         id: Date.now().toString(),
         content,
@@ -54,13 +57,18 @@ const ChatPage: React.FC = () => {
         role: 'User'
       };
 
+      // Add the new user message to the current messages
       setMessages(prev => [...prev, userMessage]);
+
+      // Send the message to the server and get the interviewer response
       const response: Message = await apiClient('MESSAGES', {
         method: 'POST',
         body: JSON.stringify({
           content,
         }),
       });
+
+      // Add the server's response to the messages
       setMessages(prev => [...prev, response]);
     } catch (error) {
       message.error('Failed to send message: ' + (error as Error).message);
