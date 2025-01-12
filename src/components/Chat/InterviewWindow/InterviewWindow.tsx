@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { Message } from '../../../types/message';
+import { motion } from 'framer-motion';
 
 interface InterviewWindowProps {
   latestMessage?: Message;
@@ -11,13 +12,29 @@ const InterviewWindow: React.FC<InterviewWindowProps> = ({ latestMessage }) => {
     return Math.floor(Math.random() * 7) + 1;
   }, []);
 
+  // Animation variants for the breathing effect
+  const breathingAnimation = {
+    initial: { scale: 1 },
+    animate: {
+      scale: [1, 1.2, 0.9, 1],
+      transition: {
+        duration: 4,
+        repeat: Infinity,
+        ease: "easeInOut"
+      }
+    }
+  };
+
   return (
     <div className="flex-grow flex flex-col items-center justify-center p-4 bg-gray-50 dark:bg-gray-800">
       <div className="max-w-2xl w-full flex flex-col items-center space-y-8">
-        <img 
+        <motion.img 
           src={`stickers/chatbot/${randomSticker}.png`}
           alt="AI Interviewer" 
           className="h-60 w-auto"
+          initial="initial"
+          animate="animate"
+          variants={breathingAnimation}
         />
         
         <div className="w-full bg-white dark:bg-gray-700 rounded-lg shadow-lg p-6">
