@@ -2,7 +2,7 @@ import React from 'react';
 import { Form, Input, Button, Card, message } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 // eslint-disable-next-line
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 import { apiClient } from '../../utils/api';
 
@@ -20,7 +20,7 @@ const Login: React.FC = () => {
     try {
       const data = await apiClient('LOGIN', {
         method: 'POST',
-        requireAuth: true,
+        requireAuth: false,
         body: JSON.stringify({
           user_id: values.userId.toLowerCase(),
           password: values.password,

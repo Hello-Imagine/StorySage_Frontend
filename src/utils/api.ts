@@ -11,10 +11,10 @@ export class ApiError extends Error {
   }
 }
 
-const handleUnauthorized = () => {
-  useAuthStore.getState().logout();
-  window.location.href = '/';
-};
+// const handleUnauthorized = () => {
+//   useAuthStore.getState().logout();
+//   window.location.href = '/';
+// };
 
 export async function apiClient(
   endpoint: keyof typeof import('../config').default['API_ENDPOINTS'] | string,
