@@ -35,7 +35,7 @@ const Header: React.FC = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/register');
+    navigate('/login');
   };
 
   return (
