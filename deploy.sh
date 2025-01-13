@@ -30,13 +30,36 @@ if [ "$ENV" = "development" ]; then
     CONTAINER_NAME="${CONTAINER_NAME}-dev"
 fi
 
+# Parse additional arguments
+FORCE_BUILD=false
+for arg in "$@"; do
+    case $arg in
+        --force-build)
+            FORCE_BUILD=true
+            shift
+            ;;
+    esac
+done
+
 echo "Building for ${ENV} environment..."
 
-# Build and run docker container
-docker build \
-  --build-arg VITE_API_BASE_URL=$VITE_API_BASE_URL \
-  --build-arg VITE_OPENAI_API_KEY=$VITE_OPENAI_API_KEY \
-  -t ${IMAGE_NAME}:latest .
+# Function to check if image exists locally
+image_exists() {
+    docker image inspect ${IMAGE_NAME}:latest >/dev/null 2>&1
+    return $?
+}
+
+# Check if image exists and force build not requested
+if image_exists && [ "$FORCE_BUILD" = false ]; then
+    echo "Using existing image: ${IMAGE_NAME}:latest"
+else
+    echo "Image doesn't exist or force build requested. Building new image..."
+    # Build docker image only if it doesn't exist
+    docker build \
+      --build-arg VITE_API_BASE_URL=$VITE_API_BASE_URL \
+      --build-arg VITE_OPENAI_API_KEY=$VITE_OPENAI_API_KEY \
+      -t ${IMAGE_NAME}:latest .
+fi
 
 # Create a Docker network if it doesn't exist
 if ! docker network ls | grep -q ai-friend-network; then
