@@ -11,10 +11,10 @@ export class ApiError extends Error {
   }
 }
 
-// const handleUnauthorized = () => {
-//   useAuthStore.getState().logout();
-//   window.location.href = '/';
-// };
+const handleUnauthorized = () => {
+  useAuthStore.getState().logout();
+  window.location.href = '/';
+};
 
 export async function apiClient(
   endpoint: keyof typeof import('../config').default['API_ENDPOINTS'] | string,
@@ -47,13 +47,15 @@ export async function apiClient(
   const data = await response.json().catch(() => null);
 
   if (!response.ok) {
-    // if (response.status === 401) {
-    //   handleUnauthorized();
-    // }
-    throw new ApiError(
-      response.status,
-      data?.detail || data?.message || 'Request failed'
-    );
+    // Directed to login page if token is expired (aka unauthorized)
+    if (response.status === 401) {
+      handleUnauthorized();
+    }
+
+    // throw new ApiError(
+    //   response.status,
+    //   data?.detail || data?.message || 'Request failed'
+    // );
   }
 
   return data;
