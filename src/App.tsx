@@ -1,14 +1,14 @@
 import { ConfigProvider, theme } from 'antd';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import ChatPage from './components/Chat/ChatPage';
-import Login from './components/User/Login';
-import Register from './components/User/Register';
+import ChatPage from './components/chat/ChatPage';
+import Login from './components/user/Login';
+import Register from './components/user/Register';
 import Home from './components/Home';
-import Header from './components/Layout/Header';
+import Header from './components/layout/Header';
 import './App.css';
 import { useEffect, useState } from 'react';
 import { useAuthStore } from './stores/authStore';
-import BiographyPage from './components/Biography/BiographyPage';
+import BiographyPage from './components/biography/BiographyPage';
 
 function App() {
   const [isDark, setIsDark] = useState(window.matchMedia('(prefers-color-scheme: dark)').matches);
