@@ -5,7 +5,7 @@ import { QuestionCircleOutlined } from '@ant-design/icons';
 interface AddSectionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAdd: (sectionNumber: string, title: string, contentSuggestion: string) => void;
+  onAdd: (sectionNumber: string, title: string, sectionPrompt: string) => void;
   parentSectionNumber?: string;  // undefined for top-level sections
 }
 
@@ -19,12 +19,12 @@ export const AddSectionModal: React.FC<AddSectionModalProps> = ({
 
   const handleSubmit = () => {
     form.validateFields().then(values => {
-      const { sectionNumber, title, contentSuggestion } = values;
+      const { sectionNumber, title, sectionPrompt } = values;
       const fullSectionNumber = parentSectionNumber 
         ? `${parentSectionNumber}.${sectionNumber}`
         : `${sectionNumber}`;
       
-      onAdd(fullSectionNumber, title, contentSuggestion);
+      onAdd(fullSectionNumber, title, sectionPrompt);
       form.resetFields();
       onClose();
     });
@@ -80,7 +80,7 @@ export const AddSectionModal: React.FC<AddSectionModalProps> = ({
         </Form.Item>
 
         <Form.Item
-          name="contentSuggestion"
+          name="sectionPrompt"
           label="Content Suggestions for AI"
           rules={[{ required: true, message: 'Please provide content suggestions' }]}
         >

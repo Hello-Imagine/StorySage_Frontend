@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Input, Button, Space } from 'antd';
 import { EditOutlined, CheckOutlined, PlusOutlined } from '@ant-design/icons';
-import { AddSectionModal } from './AddSectionModal';
+import { AddSectionModal } from '../modals/AddSectionModal';
 
 interface EditableBiographyTitleProps {
   id: string;
   title: string;
   onTitleChange: (sectionId: string, oldTitle: string, newTitle: string) => void;
-  onAddSection: (sectionNumber: string, title: string, contentSuggestion: string) => void;
+  onAddSection: (sectionNumber: string, title: string, sectionPrompt: string) => void;
 }
 
 export const EditableBiographyTitle: React.FC<EditableBiographyTitleProps> = ({

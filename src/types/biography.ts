@@ -17,14 +17,17 @@ export interface Biography {
 }
 
 export interface BiographyEdit {
-  type: 'RENAME' | 'ADD' | 'DELETE' | 'MOVE';
+  type: 'RENAME' | 'ADD' | 'DELETE' | 'MOVE' | 'COMMENT';
   sectionId: string;
   title: string;
   data?: {
     newTitle?: string;
-    newPosition?: number;
     parentTitle?: string;
-    contentSuggestion?: string;
+    sectionPrompt?: string;
+    comment?: {
+      text: string;
+      comment: string;
+    };
   };
   timestamp: number;
 } 

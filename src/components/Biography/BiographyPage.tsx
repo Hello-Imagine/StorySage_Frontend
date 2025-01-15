@@ -2,21 +2,25 @@ import React, { useState, useEffect } from 'react';
 import { Typography, Spin, Button, message, Space, Tooltip } from 'antd';
 import { EditOutlined, FileMarkdownOutlined, FilePdfOutlined, SaveOutlined, CloseOutlined } from '@ant-design/icons';
 import { Biography, Section, BiographyEdit } from '../../types/biography';
-import { RenderSection } from './content/RenderSection';
-import { EditableSection } from './content/EditableSection';
+import { RenderSection } from './sections/RenderSection';
+import { EditableSection } from './sections/EditableSection';
 import { apiClient } from '../../utils/api';
-import { EditableBiographyTitle } from './content/EditableBiographyTitle';
+import { EditableBiographyTitle } from './sections/EditableBiographyTitle';
 import { exportToPDF, exportToMarkdown } from '../../utils/exportUtils';
 
 const { Title, Paragraph } = Typography;
 
 const addOrUpdateEdit = (prevEdits: BiographyEdit[], newEdit: BiographyEdit): BiographyEdit[] => {
-  // Filter out any previous edits of the same type for the same section
+  // For comments, we don't filter out previous edits
+  if (newEdit.type === 'COMMENT') {
+    return [...prevEdits, newEdit];
+  }
+  
+  // For other edit types, filter out previous edits of the same type for the same section
   const filteredEdits = prevEdits.filter(edit => 
     !(edit.type === newEdit.type && edit.sectionId === newEdit.sectionId)
   );
   
-  // Add the new edit
   return [...filteredEdits, newEdit];
 };
 
@@ -57,6 +61,37 @@ const BiographyPage: React.FC = () => {
 
   const handleSave = async () => {
     try {
+      // Validate new sections
+      const addEdits = edits.filter(edit => edit.type === 'ADD');
+      if (addEdits.length > 0) {
+        // Helper function to collect all section titles
+        const collectSectionTitles = (sections: Record<string, Section>): string[] => {
+          return Object.values(sections).reduce((titles: string[], section) => {
+            // Get section number and text separately
+            const [sectionNumber] = section.title.split(' ');
+            titles.push(sectionNumber);
+            
+            // Recursively collect subsection titles
+            return [...titles, ...collectSectionTitles(section.subsections)];
+          }, []);
+        };
+
+        // Get all existing section numbers
+        const existingSectionNumbers = collectSectionTitles(editedBiography?.subsections || {});
+
+        // Check for duplicates
+        const duplicates = addEdits.filter(edit => {
+          const [newSectionNumber] = edit.title.split(' ');
+          return existingSectionNumbers.includes(newSectionNumber);
+        });
+
+        if (duplicates.length > 0) {
+          const duplicateNumbers = duplicates.map(d => d.title.split(' ')[0]).join(', ');
+          message.error(`Sections with numbers ${duplicateNumbers} already exist. Please use different numbers.`);
+          return;
+        }
+      }
+
       console.log('Saving biography with edits:', edits);
       // TODO: Uncomment this when the API is ready
       // await apiClient('BIOGRAPHY_UPDATE', {
@@ -133,14 +168,14 @@ const BiographyPage: React.FC = () => {
     }));
   };
 
-  const handleAddSection = (sectionNumber: string, title: string, contentSuggestion: string) => {
+  const handleAddSection = (sectionNumber: string, title: string, sectionPrompt: string) => {
     if (!editedBiography) return;
 
     const fullTitle = `${sectionNumber} ${title}`;
     const newSection: Section = {
       id: `section-${Date.now()}`,
       title: fullTitle,
-      content:'AI Writing Suggestions:' + contentSuggestion,
+      content:'AI Writing Suggestions:' + sectionPrompt,
       subsections: {},
       created_at: new Date().toISOString(),
       last_edit: new Date().toISOString()
@@ -230,7 +265,7 @@ const BiographyPage: React.FC = () => {
       title: fullTitle,
       data: { 
         parentTitle,
-        contentSuggestion  // Save the content suggestion for AI
+        sectionPrompt  // Save the content suggestion for AI
       },
       timestamp: Date.now()
     }));
@@ -271,6 +306,27 @@ const BiographyPage: React.FC = () => {
       title,
       timestamp: Date.now()
     }));
+  };
+
+  const handleAddComment = (
+    section: Section,
+    selectedText: string,
+    comment: string
+  ) => {
+    setEdits(prev => addOrUpdateEdit(prev, {
+      type: 'COMMENT',
+      sectionId: section.id,
+      title: section.title,
+      data: {
+        comment: {
+          text: selectedText,
+          comment
+        }
+      },
+      timestamp: Date.now()
+    }));
+
+    message.success('Comment added successfully');
   };
 
   useEffect(() => {
@@ -405,6 +461,8 @@ const BiographyPage: React.FC = () => {
                 onTitleChange={handleSectionTitleChange}
                 onAddSection={handleAddSection}
                 onDeleteSection={handleDeleteSection}
+                onAddComment={handleAddComment}
+                edits={edits}
               />
             ))}
           </>
