@@ -56,6 +56,7 @@ bash deploy.sh production --force-build
 ```
 
 Notes:
+
 - The script will reuse existing Docker images unless `--force-build` is specified
 - Development mode uses the image tag `ai-friend-frontend-dev:latest`
 - Production mode uses the image tag `ai-friend-frontend:latest`

@@ -7,22 +7,9 @@ import { EditableSection } from './sections/EditableSection';
 import { apiClient } from '../../utils/api';
 import { EditableBiographyTitle } from './sections/EditableBiographyTitle';
 import { exportToPDF, exportToMarkdown } from '../../utils/exportUtils';
+import { addOrUpdateEdit, sortSectionsByNumber, findParentSection, isValidPathFormat } from '../../utils/biographyUtils';
 
 const { Title, Paragraph } = Typography;
-
-const addOrUpdateEdit = (prevEdits: BiographyEdit[], newEdit: BiographyEdit): BiographyEdit[] => {
-  // For comments, we don't filter out previous edits
-  if (newEdit.type === 'COMMENT') {
-    return [...prevEdits, newEdit];
-  }
-  
-  // For other edit types, filter out previous edits of the same type for the same section
-  const filteredEdits = prevEdits.filter(edit => 
-    !(edit.type === newEdit.type && edit.sectionId === newEdit.sectionId)
-  );
-  
-  return [...filteredEdits, newEdit];
-};
 
 const BiographyPage: React.FC = () => {
   const [biography, setBiography] = useState<Biography | null>(null);
@@ -137,27 +124,92 @@ const BiographyPage: React.FC = () => {
   const handleSectionTitleChange = (sectionId: string, oldTitle: string, newTitle: string) => {
     if (!editedBiography) return;
     
-    const updateSectionTitle = (sections: Record<string, Section>, id: string): Record<string, Section> => {
+    // Extract section number from new title
+    const newSectionNumber = newTitle.split(' ')[0];
+    
+    // Validate the new section number format
+    if (!isValidPathFormat(newSectionNumber)) {
+      message.error('Invalid section format. Please use a number or dot-separated numbers (1 or 1.2) followed by a SPACE and your title');
+      return;
+    }
+
+    // Helper function to find a section and its parent
+    const findSectionAndParent = (
+      sections: Record<string, Section>, 
+      id: string
+    ): { section: Section; parent: Record<string, Section> } | null => {
+      // Check direct children
+      for (const [, section] of Object.entries(sections)) {
+        if (section.id === id) {
+          return { section, parent: sections };
+        }
+        
+        // Check subsections
+        const found = findSectionAndParent(section.subsections, id);
+        if (found) {
+          return found;
+        }
+      }
+      return null;
+    };
+
+    const result = findSectionAndParent(editedBiography.subsections, sectionId);
+    if (!result) {
+      console.log('Section not found:', sectionId);
+      return;
+    }
+
+    const { section, parent } = result;
+
+    // Update the key in parent's sections
+    const updatedParent = { ...parent };
+    // Remove old entry and add new one with updated title
+    delete updatedParent[section.title];
+    updatedParent[newTitle] = {
+      ...section,
+      title: newTitle
+    };
+
+    // Sort the parent's sections
+    const sortedParent = sortSectionsByNumber(updatedParent);
+
+    // Update the biography state by replacing the parent's sections
+    const updateParentSections = (sections: Record<string, Section>): Record<string, Section> => {
       const newSections = { ...sections };
       
-      for (const key in newSections) {
-        if (key === id) {
-          newSections[key] = { ...newSections[key], title: newTitle };
+      for (const [key, section] of Object.entries(sections)) {
+        if (section.subsections === parent) {
+          // Found the parent, update its subsections
+          newSections[key] = {
+            ...section,
+            subsections: sortedParent
+          };
           return newSections;
         }
+        
+        // Recursively update subsections
         newSections[key] = {
-          ...newSections[key],
-          subsections: updateSectionTitle(newSections[key].subsections, id)
+          ...section,
+          subsections: updateParentSections(section.subsections)
         };
       }
       
       return newSections;
     };
 
-    setEditedBiography({
-      ...editedBiography,
-      subsections: updateSectionTitle(editedBiography.subsections, sectionId)
-    });
+    // If it's a top-level section, update directly
+    if (parent === editedBiography.subsections) {
+      setEditedBiography({
+        ...editedBiography,
+        subsections: sortedParent
+      });
+    } else {
+      // Otherwise, update the parent's subsections recursively
+      setEditedBiography({
+        ...editedBiography,
+        subsections: updateParentSections(editedBiography.subsections)
+      });
+    }
 
     setEdits(prev => addOrUpdateEdit(prev, {
       type: 'RENAME',
@@ -175,47 +227,14 @@ const BiographyPage: React.FC = () => {
     const newSection: Section = {
       id: `section-${Date.now()}`,
       title: fullTitle,
-      content:'AI Writing Suggestions:' + sectionPrompt,
+      content: 'AI Writing Suggestions:' + sectionPrompt,
       subsections: {},
       created_at: new Date().toISOString(),
-      last_edit: new Date().toISOString()
+      last_edit: new Date().toISOString(),
+      isNew: true
     };
 
-    // Helper function to sort sections by their section numbers
-    const sortSectionsByNumber = (sections: Record<string, Section>): Record<string, Section> => {
-      return Object.fromEntries(
-        Object.entries(sections)
-          .sort(([, a], [, b]) => {
-            const aNum = a.title.split(' ')[0].split('.').map(Number);
-            const bNum = b.title.split(' ')[0].split('.').map(Number);
-            
-            // Compare each level of the section numbers
-            for (let i = 0; i < Math.max(aNum.length, bNum.length); i++) {
-              const aVal = aNum[i] || 0;
-              const bVal = bNum[i] || 0;
-              if (aVal !== bVal) return aVal - bVal;
-            }
-            return 0;
-          })
-      );
-    };
-
-    // Function to find parent section by section number
-    const findParentSection = (sections: Record<string, Section>, targetNumber: string): string | undefined => {
-      const parentNumber = targetNumber.split('.').slice(0, -1).join('.');
-      if (!parentNumber) return undefined;  // Top-level section
-
-      for (const [name, section] of Object.entries(sections)) {
-        const currentNumber = section.title.split(' ')[0];
-        if (currentNumber === parentNumber) return name;
-        
-        const foundInSubsections = findParentSection(section.subsections, targetNumber);
-        if (foundInSubsections) return foundInSubsections;
-      }
-      
-      return undefined;
-    };
-
+    // Use the shared findParentSection function
     const parentTitle = findParentSection(editedBiography.subsections, sectionNumber);
 
     if (!parentTitle) {
@@ -279,14 +298,12 @@ const BiographyPage: React.FC = () => {
     const deleteSection = (sections: Record<string, Section>, targetId: string): Record<string, Section> => {
       const newSections = { ...sections };
       
-      // Check each section's id instead of using the object keys
       for (const [key, section] of Object.entries(newSections)) {
         if (section.id === targetId) {
           delete newSections[key];
           return newSections;
         }
         
-        // Recursively check subsections
         section.subsections = deleteSection(section.subsections, targetId);
       }
       

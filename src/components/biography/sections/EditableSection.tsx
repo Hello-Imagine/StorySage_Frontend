@@ -7,7 +7,7 @@ import { CommentPopup } from '../comments/CommentPopup';
 import { CommentsDrawer } from '../comments/CommentsDrawer';
 
 interface EditableSectionProps {
-  section: Section;
+  section: Section & { isNew?: boolean };
   level: number;
   onTitleChange: (sectionId: string, oldTitle: string, newTitle: string) => void;
   onAddSection: (sectionNumber: string, title: string, sectionPrompt: string) => void;
@@ -104,17 +104,21 @@ export const EditableSection: React.FC<EditableSectionProps> = ({
     edit => edit.type === 'COMMENT' && edit.sectionId === section.id
   );
 
+  // Add a class to disable interactions if the section is new
+  const disabledClass = section.isNew ? 'pointer-events-none opacity-60' : '';
+
   return (
     <>
-      <div className="mb-6 p-4 border border-dashed border-gray-300 dark:border-gray-700 rounded">
-        <div className="flex items-center gap-2 mb-2">
+      <div className={`mb-6 p-4 border border-dashed border-gray-300 dark:border-gray-700 rounded ${section.isNew ? 'bg-gray-50 dark:bg-gray-800' : ''}`}>
+        <div className={`flex items-center gap-2 mb-2 ${disabledClass}`}>
           <Input
             value={titleValue}
             onChange={handleInputChange}
-            disabled={!isEditing}
+            disabled={!isEditing || section.isNew}
             className={`
               font-bold
               ${!isEditing ? 'bg-transparent border-transparent hover:bg-gray-50 dark:hover:bg-gray-800' : ''}
+              ${section.isNew ? 'cursor-not-allowed' : ''}
             `}
           />
           <Space>
@@ -123,12 +127,14 @@ export const EditableSection: React.FC<EditableSectionProps> = ({
               onClick={isEditing ? handleConfirmClick : handleEditClick}
               size="small"
               type={isEditing ? "primary" : "default"}
+              disabled={section.isNew}
             />
             {showAddButton && (
               <Button
                 icon={<PlusOutlined />}
                 onClick={() => setIsAddModalOpen(true)}
                 size="small"
+                disabled={section.isNew}
               />
             )}
             <Popconfirm
@@ -136,17 +142,19 @@ export const EditableSection: React.FC<EditableSectionProps> = ({
               onConfirm={() => onDeleteSection(section.id, section.title)}
               okText="Yes"
               cancelText="No"
+              disabled={section.isNew}
             >
               <Button
                 icon={<DeleteOutlined />}
                 danger
                 size="small"
+                disabled={section.isNew}
               />
             </Popconfirm>
           </Space>
         </div>
         {section.content && (
-          <div className="relative">
+          <div className={`relative ${disabledClass}`}>
             <div className="flex items-start gap-2">
               <Badge count={sectionComments.length} showZero={false}>
                 <Button
@@ -154,11 +162,12 @@ export const EditableSection: React.FC<EditableSectionProps> = ({
                   size="small"
                   onClick={() => setIsCommentsDrawerOpen(true)}
                   title="View comments"
+                  disabled={section.isNew}
                 />
               </Badge>
               <div 
-                className="flex-1 mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded section-content"
-                onMouseUp={handleTextSelection}
+                className={`flex-1 mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded section-content ${section.isNew ? 'cursor-not-allowed' : ''}`}
+                onMouseUp={section.isNew ? undefined : handleTextSelection}
               >
                 <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line">
                   {section.content}

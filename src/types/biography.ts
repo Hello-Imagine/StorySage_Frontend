@@ -5,6 +5,7 @@ export interface Section {
   created_at: string;
   last_edit: string;
   subsections: Record<string, Section>;
+  isNew?: boolean;
 }
 
 export interface Biography {
