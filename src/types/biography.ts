@@ -18,13 +18,14 @@ export interface Biography {
 }
 
 export interface BiographyEdit {
-  type: 'RENAME' | 'ADD' | 'DELETE' | 'MOVE' | 'COMMENT';
+  type: 'RENAME' | 'DELETE' | 'CONTENT_CHANGE' | 'COMMENT' | 'ADD';
   sectionId: string;
   title: string;
   data?: {
     newTitle?: string;
     parentTitle?: string;
     sectionPrompt?: string;
+    newContent?: string;
     comment?: {
       text: string;
       comment: string;

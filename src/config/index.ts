@@ -6,6 +6,7 @@ interface Config {
     REGISTER: string;
     END_SESSION: string;
     BIOGRAPHY_LATEST: string;
+    BIOGRAPHY_EDIT: string;
     TRANSCRIBE: string;
   };
 }
@@ -18,6 +19,7 @@ const config: Config = {
     REGISTER: '/user/register',
     END_SESSION: '/sessions/end',
     BIOGRAPHY_LATEST: '/biography/latest',
+    BIOGRAPHY_EDIT: '/biography/edit',
     TRANSCRIBE: '/transcribe',
   },
 };

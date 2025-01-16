@@ -32,23 +32,21 @@ export const sortSectionsByNumber = (sections: Record<string, Section>): Record<
   );
 };
 
-// Move findParentSection outside to be reused
-export const findParentSection = (sections: Record<string, Section>, targetNumber: string): string | undefined => {
-  const parentNumber = targetNumber.split('.').slice(0, -1).join('.');
-  if (!parentNumber) return undefined;  // Top-level section
+export const findParentSection = (sections: Record<string, Section>, childNumber: string): Section | null => {
+  const parentNumber = childNumber.split('.').slice(0, -1).join('.');
+  if (!parentNumber) return null;  // Top-level section
 
-  for (const [name, section] of Object.entries(sections)) {
+  for (const [, section] of Object.entries(sections)) {
     const currentNumber = section.title.split(' ')[0];
-    if (currentNumber === parentNumber) return name;
+    if (currentNumber === parentNumber) return section;
     
-    const foundInSubsections = findParentSection(section.subsections, targetNumber);
+    const foundInSubsections = findParentSection(section.subsections, childNumber);
     if (foundInSubsections) return foundInSubsections;
   }
   
-  return undefined;
+  return null;
 };
 
-// Add these validation helper functions
 export const isValidSubsectionNumber = (parentNumber: string, childNumber: string): boolean => {
   const parentParts = parentNumber.split('.');
   const childParts = childNumber.split('.');
@@ -96,4 +94,24 @@ export const isValidPathFormat = (sectionNumber: string): boolean => {
   }
     
   return true;
+};
+
+// Helper function to find a section and its parent
+export const findSectionAndParent = (
+  sections: Record<string, Section>, 
+  id: string
+): { section: Section; parent: Record<string, Section> } | null => {
+  // Check direct children
+  for (const [, section] of Object.entries(sections)) {
+    if (section.id === id) {
+      return { section, parent: sections };
+    }
+    
+    // Check subsections
+    const found = findSectionAndParent(section.subsections, id);
+    if (found) {
+      return found;
+    }
+  }
+  return null;
 };

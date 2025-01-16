@@ -9,29 +9,34 @@ import { CommentsDrawer } from '../comments/CommentsDrawer';
 interface EditableSectionProps {
   section: Section & { isNew?: boolean };
   level: number;
-  onTitleChange: (sectionId: string, oldTitle: string, newTitle: string) => void;
+  edits: BiographyEdit[];
+  onTitleChange: (section: Section, newTitle: string) => void;
   onAddSection: (sectionNumber: string, title: string, sectionPrompt: string) => void;
-  onDeleteSection: (sectionId: string, title: string) => void;
+  onDeleteSection: (section: Section) => void;
   onAddComment: (
     section: Section,
     selectedText: string,
     comment: string
   ) => void;
-  edits: BiographyEdit[];
+  onContentChange: (section: Section, newContent: string) => void;
 }
 
 export const EditableSection: React.FC<EditableSectionProps> = ({
   section,
   level,
+  edits,
   onTitleChange,
   onAddSection,
   onDeleteSection,
   onAddComment,
-  edits,
+  onContentChange,
 }) => {
-  const [isEditing, setIsEditing] = useState(false);
+  const [isTitleEditing, setIsTitleEditing] = useState(false);
+  const [isContentEditing, setIsContentEditing] = useState(false);
   const [titleValue, setTitleValue] = useState(section.title);
+  const [contentValue, setContentValue] = useState(section.content);
   const [originalTitle, setOriginalTitle] = useState(section.title);
+  const [originalContent, setOriginalContent] = useState(section.content);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedText, setSelectedText] = useState('');
   const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
@@ -39,23 +44,41 @@ export const EditableSection: React.FC<EditableSectionProps> = ({
 
   useEffect(() => {
     setTitleValue(section.title);
+    setContentValue(section.content);
     setOriginalTitle(section.title);
-  }, [section.title]);
+    setOriginalContent(section.content);
+  }, [section.title, section.content]);
 
-  const handleEditClick = () => {
-    setIsEditing(true);
+  const handleTitleEditClick = () => {
+    setIsTitleEditing(true);
     setOriginalTitle(section.title);
   };
 
-  const handleConfirmClick = () => {
-    setIsEditing(false);
+  const handleTitleConfirmClick = () => {
+    setIsTitleEditing(false);
     if (titleValue !== originalTitle) {
-      onTitleChange(section.id, originalTitle, titleValue);
+      onTitleChange(section, titleValue);
+    }
+  };
+
+  const handleContentEditClick = () => {
+    setIsContentEditing(true);
+    setOriginalContent(section.content);
+  };
+
+  const handleContentConfirmClick = () => {
+    setIsContentEditing(false);
+    if (contentValue !== originalContent) {
+      onContentChange(section, contentValue);
     }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTitleValue(e.target.value);
+  };
+
+  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setContentValue(e.target.value);
   };
 
   // Extract section number from title (e.g., "1.2 Education" -> "1.2")
@@ -114,19 +137,19 @@ export const EditableSection: React.FC<EditableSectionProps> = ({
           <Input
             value={titleValue}
             onChange={handleInputChange}
-            disabled={!isEditing || section.isNew}
+            disabled={!isTitleEditing || section.isNew}
             className={`
               font-bold
-              ${!isEditing ? 'bg-transparent border-transparent hover:bg-gray-50 dark:hover:bg-gray-800' : ''}
+              ${!isTitleEditing ? 'bg-transparent border-transparent hover:bg-gray-50 dark:hover:bg-gray-800' : ''}
               ${section.isNew ? 'cursor-not-allowed' : ''}
             `}
           />
           <Space>
             <Button
-              icon={isEditing ? <CheckOutlined /> : <EditOutlined />}
-              onClick={isEditing ? handleConfirmClick : handleEditClick}
+              icon={isTitleEditing ? <CheckOutlined /> : <EditOutlined />}
+              onClick={isTitleEditing ? handleTitleConfirmClick : handleTitleEditClick}
               size="small"
-              type={isEditing ? "primary" : "default"}
+              type={isTitleEditing ? "primary" : "default"}
               disabled={section.isNew}
             />
             {showAddButton && (
@@ -139,7 +162,7 @@ export const EditableSection: React.FC<EditableSectionProps> = ({
             )}
             <Popconfirm
               title="Are you sure you want to delete this section?"
-              onConfirm={() => onDeleteSection(section.id, section.title)}
+              onConfirm={() => onDeleteSection(section)}
               okText="Yes"
               cancelText="No"
               disabled={section.isNew}
@@ -156,23 +179,43 @@ export const EditableSection: React.FC<EditableSectionProps> = ({
         {section.content && (
           <div className={`relative ${disabledClass}`}>
             <div className="flex items-start gap-2">
-              <Badge count={sectionComments.length} showZero={false}>
+              <Space direction="vertical" size="small" className="flex-shrink-0">
+                <Badge count={sectionComments.length} showZero={false}>
+                  <Button
+                    icon={<CommentOutlined />}
+                    size="small"
+                    onClick={() => setIsCommentsDrawerOpen(true)}
+                    title="View comments"
+                    disabled={section.isNew}
+                  />
+                </Badge>
                 <Button
-                  icon={<CommentOutlined />}
+                  icon={isContentEditing ? <CheckOutlined /> : <EditOutlined />}
+                  onClick={isContentEditing ? handleContentConfirmClick : handleContentEditClick}
                   size="small"
-                  onClick={() => setIsCommentsDrawerOpen(true)}
-                  title="View comments"
+                  type={isContentEditing ? "primary" : "default"}
+                  disabled={section.isNew}
+                  title={isContentEditing ? "Save content" : "Edit content"}
+                />
+              </Space>
+              {isContentEditing ? (
+                <Input.TextArea
+                  value={contentValue}
+                  onChange={handleContentChange}
+                  className="flex-1 mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded"
+                  autoSize={{ minRows: 3 }}
                   disabled={section.isNew}
                 />
-              </Badge>
-              <div 
-                className={`flex-1 mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded section-content ${section.isNew ? 'cursor-not-allowed' : ''}`}
-                onMouseUp={section.isNew ? undefined : handleTextSelection}
-              >
-                <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line">
-                  {section.content}
-                </p>
-              </div>
+              ) : (
+                <div 
+                  className={`flex-1 mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded section-content ${section.isNew ? 'cursor-not-allowed' : ''}`}
+                  onMouseUp={section.isNew ? undefined : handleTextSelection}
+                >
+                  <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line">
+                    {section.content}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -181,11 +224,12 @@ export const EditableSection: React.FC<EditableSectionProps> = ({
             key={subsection.id}
             section={subsection}
             level={level + 1}
+            edits={edits}
             onTitleChange={onTitleChange}
             onAddSection={onAddSection}
             onDeleteSection={onDeleteSection}
             onAddComment={onAddComment}
-            edits={edits}
+            onContentChange={onContentChange}
           />
         ))}
       </div>

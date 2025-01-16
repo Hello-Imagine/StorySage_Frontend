@@ -7,7 +7,7 @@ import { EditableSection } from './sections/EditableSection';
 import { apiClient } from '../../utils/api';
 import { EditableBiographyTitle } from './sections/EditableBiographyTitle';
 import { exportToPDF, exportToMarkdown } from '../../utils/exportUtils';
-import { addOrUpdateEdit, sortSectionsByNumber, findParentSection, isValidPathFormat } from '../../utils/biographyUtils';
+import { addOrUpdateEdit, sortSectionsByNumber, findParentSection, isValidPathFormat, findSectionAndParent } from '../../utils/biographyUtils';
 
 const { Title, Paragraph } = Typography;
 
@@ -50,7 +50,7 @@ const BiographyPage: React.FC = () => {
     try {
       // Validate new sections
       const addEdits = edits.filter(edit => edit.type === 'ADD');
-      if (addEdits.length > 0) {
+      if (addEdits.length > 0 && biography) {
         // Helper function to collect all section titles
         const collectSectionTitles = (sections: Record<string, Section>): string[] => {
           return Object.values(sections).reduce((titles: string[], section) => {
@@ -63,8 +63,8 @@ const BiographyPage: React.FC = () => {
           }, []);
         };
 
-        // Get all existing section numbers
-        const existingSectionNumbers = collectSectionTitles(editedBiography?.subsections || {});
+        // Get all existing section numbers from the original biography
+        const existingSectionNumbers = collectSectionTitles(biography.subsections);
 
         // Check for duplicates
         const duplicates = addEdits.filter(edit => {
@@ -79,20 +79,39 @@ const BiographyPage: React.FC = () => {
         }
       }
 
-      console.log('Saving biography with edits:', edits);
-      // TODO: Uncomment this when the API is ready
-      // await apiClient('BIOGRAPHY_UPDATE', {
-      //   method: 'PUT',
-      //   body: JSON.stringify({
-      //     edits: edits
-      //   }),
-      // });
-      setBiography(editedBiography);
+      console.log('Sending edits to backend: \n', edits);
+
+      // Send edits to backend
+      const updatedBiography = await apiClient('BIOGRAPHY_EDIT', {
+        method: 'POST',
+        body: JSON.stringify(edits)
+      });
+
+      // Update local state with the response from server
+      setBiography(updatedBiography);
       setEditMode(false);
       setEdits([]);
       message.success('Biography updated successfully');
     } catch (error) {
       console.error('Error updating biography:', error);
+      
+      // Show more specific error messages based on the response
+      if (error instanceof Error) {
+        if ('status' in error && error.status === 400) {
+          // Try to parse the error detail from the response
+          try {
+            const detail = JSON.parse(error.message).detail;
+            message.error(`Failed to update biography: ${detail}`);
+            return;
+          } catch {
+            // If can't parse detail, fall back to generic message
+            message.error('Failed to update biography: Invalid edit operation');
+            return;
+          }
+        }
+      }
+      
+      // Generic error message as fallback
       message.error('Failed to update biography');
     }
   };
@@ -121,50 +140,27 @@ const BiographyPage: React.FC = () => {
     }));
   };
 
-  const handleSectionTitleChange = (sectionId: string, oldTitle: string, newTitle: string) => {
+  const handleSectionTitleChange = (section: Section, newTitle: string) => {
     if (!editedBiography) return;
     
-    // Extract section number from new title
-    const newSectionNumber = newTitle.split(' ')[0];
-    
     // Validate the new section number format
+    const newSectionNumber = newTitle.split(' ')[0];
     if (!isValidPathFormat(newSectionNumber)) {
       message.error('Invalid section format. Please use a number or dot-separated numbers (1 or 1.2) followed by a SPACE and your title');
       return;
     }
 
-    // Helper function to find a section and its parent
-    const findSectionAndParent = (
-      sections: Record<string, Section>, 
-      id: string
-    ): { section: Section; parent: Record<string, Section> } | null => {
-      // Check direct children
-      for (const [, section] of Object.entries(sections)) {
-        if (section.id === id) {
-          return { section, parent: sections };
-        }
-        
-        // Check subsections
-        const found = findSectionAndParent(section.subsections, id);
-        if (found) {
-          return found;
-        }
-      }
-      return null;
-    };
-
-    const result = findSectionAndParent(editedBiography.subsections, sectionId);
+    // Find the section and its parent
+    const result = findSectionAndParent(editedBiography.subsections, section.id);
     if (!result) {
-      console.log('Section not found:', sectionId);
+      console.log('Section not found:', section.id);
       return;
     }
 
-    const { section, parent } = result;
-
     // Update the key in parent's sections
+    const { parent } = result;
     const updatedParent = { ...parent };
-    // Remove old entry and add new one with updated title
-    delete updatedParent[section.title];
+    delete updatedParent[section.title]; 
     updatedParent[newTitle] = {
       ...section,
       title: newTitle
@@ -213,8 +209,8 @@ const BiographyPage: React.FC = () => {
 
     setEdits(prev => addOrUpdateEdit(prev, {
       type: 'RENAME',
-      sectionId,
-      title: oldTitle,
+      sectionId: section.id,
+      title: section.title,
       data: { newTitle },
       timestamp: Date.now()
     }));
@@ -234,38 +230,40 @@ const BiographyPage: React.FC = () => {
       isNew: true
     };
 
-    // Use the shared findParentSection function
-    const parentTitle = findParentSection(editedBiography.subsections, sectionNumber);
-
+    const parentSection = findParentSection(editedBiography.subsections, sectionNumber);
+    const parentTitle = parentSection ? parentSection.title : "";
+    
     if (!parentTitle) {
       // Add as top-level section
       setEditedBiography({
         ...editedBiography,
         subsections: sortSectionsByNumber({
           ...editedBiography.subsections,
-          [newSection.id]: newSection,
+          [fullTitle]: newSection,
         }),
       });
     } else {
       // Add to parent section
-      const updateSubsections = (sections: Record<string, Section>, id: string): Record<string, Section> => {
+      const updateSubsections = (sections: Record<string, Section>): Record<string, Section> => {
         const newSections = { ...sections };
         
-        if (id in newSections) {
-          newSections[id] = {
-            ...newSections[id],
+        // Check if current level contains the parent section
+        if (parentTitle in newSections) {
+          newSections[parentTitle] = {
+            ...newSections[parentTitle],
             subsections: sortSectionsByNumber({
-              ...newSections[id].subsections,
-              [newSection.id]: newSection,
+              ...newSections[parentTitle].subsections,
+              [fullTitle]: newSection,
             }),
           };
           return newSections;
         }
 
+        // If not found, recursively check subsections
         for (const key in newSections) {
           newSections[key] = {
             ...newSections[key],
-            subsections: updateSubsections(newSections[key].subsections, id),
+            subsections: updateSubsections(newSections[key].subsections)
           };
         }
         
@@ -274,7 +272,7 @@ const BiographyPage: React.FC = () => {
 
       setEditedBiography({
         ...editedBiography,
-        subsections: updateSubsections(editedBiography.subsections, parentTitle),
+        subsections: updateSubsections(editedBiography.subsections),
       });
     }
 
@@ -284,7 +282,7 @@ const BiographyPage: React.FC = () => {
       title: fullTitle,
       data: { 
         parentTitle,
-        sectionPrompt  // Save the content suggestion for AI
+        sectionPrompt
       },
       timestamp: Date.now()
     }));
@@ -292,7 +290,7 @@ const BiographyPage: React.FC = () => {
     message.success('Section added successfully!');
   };
 
-  const handleDeleteSection = (sectionId: string, title: string) => {
+  const handleDeleteSection = (section: Section) => {
     if (!editedBiography) return;
 
     const deleteSection = (sections: Record<string, Section>, targetId: string): Record<string, Section> => {
@@ -310,7 +308,7 @@ const BiographyPage: React.FC = () => {
       return newSections;
     };
 
-    const updatedSubsections = deleteSection(editedBiography.subsections, sectionId);
+    const updatedSubsections = deleteSection(editedBiography.subsections, section.id);
 
     setEditedBiography({
       ...editedBiography,
@@ -319,8 +317,8 @@ const BiographyPage: React.FC = () => {
 
     setEdits(prev => addOrUpdateEdit(prev, {
       type: 'DELETE',
-      sectionId,
-      title,
+      sectionId: section.id,
+      title: section.title,
       timestamp: Date.now()
     }));
   };
@@ -344,6 +342,43 @@ const BiographyPage: React.FC = () => {
     }));
 
     message.success('Comment added successfully');
+  };
+
+  const handleContentChange = (section: Section, newContent: string) => {
+    if (!editedBiography) return;
+
+    const updateSectionContent = (sections: Record<string, Section>, id: string): Record<string, Section> => {
+      const newSections = { ...sections };
+      
+      for (const key in newSections) {
+        if (newSections[key].id === id) {
+          newSections[key] = {
+            ...newSections[key],
+            content: newContent
+          };
+          return newSections;
+        }
+        newSections[key] = {
+          ...newSections[key],
+          subsections: updateSectionContent(newSections[key].subsections, id)
+        };
+      }
+      
+      return newSections;
+    };
+
+    setEditedBiography({
+      ...editedBiography,
+      subsections: updateSectionContent(editedBiography.subsections, section.id)
+    });
+
+    setEdits(prev => addOrUpdateEdit(prev, {
+      type: 'CONTENT_CHANGE',
+      sectionId: section.id,
+      title: section.title,
+      data: { newContent },
+      timestamp: Date.now()
+    }));
   };
 
   useEffect(() => {
@@ -475,11 +510,12 @@ const BiographyPage: React.FC = () => {
                 key={section.id}
                 section={section}
                 level={2}
+                edits={edits}
                 onTitleChange={handleSectionTitleChange}
                 onAddSection={handleAddSection}
                 onDeleteSection={handleDeleteSection}
                 onAddComment={handleAddComment}
-                edits={edits}
+                onContentChange={handleContentChange}
               />
             ))}
           </>

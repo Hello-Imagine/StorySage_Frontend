@@ -32,7 +32,7 @@ export const AddSectionModal: React.FC<AddSectionModalProps> = ({
 
   return (
     <Modal
-      title="Add New Section"
+      title={`Add New Subsection Under Section ${parentSectionNumber}`}
       open={isOpen}
       onOk={handleSubmit}
       onCancel={onClose}
@@ -45,11 +45,14 @@ export const AddSectionModal: React.FC<AddSectionModalProps> = ({
         <Form.Item label="Section Number" required>
           <Space>
             {parentSectionNumber && (
-              <Input
-                value={parentSectionNumber}
-                disabled
-                style={{ width: '80px' }}
-              />
+              <>
+                <Input
+                  value={parentSectionNumber}
+                  disabled
+                  style={{ width: '80px' }}
+                />
+                <span>.</span>
+              </>
             )}
             <Form.Item
               name="sectionNumber"
