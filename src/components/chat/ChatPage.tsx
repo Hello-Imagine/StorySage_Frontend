@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { message, Spin } from 'antd';
+import React, { useState, useEffect, useCallback } from 'react';
+import { message, Spin, notification } from 'antd';
+import { SmileOutlined } from '@ant-design/icons';
 import MessageWindow from './message-window/MessageWindow';
 import InterviewWindow from './interview-window/InterviewWindow';
 import ChatInput from './ChatInput';
@@ -11,6 +12,8 @@ const ChatPage: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [historicalMessagesCount, setHistoricalMessagesCount] = useState(0);
+  const [isTranscriptionEnabled, setIsTranscriptionEnabled] = useState(true);
+  const [currentAudioUrl, setCurrentAudioUrl] = useState<string>();
   const navigate = useNavigate();
   const location = useLocation();
   const isInterviewMode = location.pathname === '/user_chat';
@@ -18,31 +21,46 @@ const ChatPage: React.FC = () => {
   useEffect(() => {
     const fetchMessages = async () => {
       try {
-        if (isInterviewMode) {
-          // Set default welcome message for interview mode
-          const welcomeMessage: Message = {
-            id: 'welcome',
-            content: "Hello! I'm your AI interviewer today. I'll be asking you some questions to learn more about your experience to help you write your biography. Nice to meet you here 😀!",
-            created_at: new Date().toISOString(),
-            role: 'Interviewer'
-          };
-          setMessages([welcomeMessage]);
-          setHistoricalMessagesCount(0);
-        } else {
-          // Fetch historical messages for chat mode
-          const data = await apiClient('MESSAGES', {
-            method: 'GET',
-          });
-          setMessages(data);
-          setHistoricalMessagesCount(data.length);
-        }
+        const data = await apiClient('MESSAGES', {
+          method: 'GET',
+        });
+        setMessages(data);
+        setHistoricalMessagesCount(data.length);
+
+        notification.success({
+          message: 'Welcome Back!',
+          description: "Hello! Welcome back to your biography interview. Let's continue where we left off!",
+          icon: <SmileOutlined style={{ color: '#108ee9' }} />,
+          placement: 'topRight',
+          duration: 3,
+        });
+        
       } catch (error) {
         message.error('Failed to fetch messages: ' + (error as Error).message);
       }
     };
-
     fetchMessages();
   }, [isInterviewMode]);
+
+  // Fetch audio for a message
+  const fetchAudio = useCallback(async (messageContent: string) => {
+    try {
+      const response = await apiClient('TEXT_TO_SPEECH', {
+        method: 'POST',
+        body: JSON.stringify({
+          text: messageContent,
+        }),
+      });
+      
+      if (response.audioUrl) {
+        setCurrentAudioUrl(response.audioUrl);
+      } else {
+        throw new Error('No audio URL received');
+      }
+    } catch (error) {
+      message.error('Failed to fetch audio: ' + (error as Error).message);
+    }
+  }, []);
 
   // When a new message is sent, we send it to the server and add it to the messages array
   const handleSendMessage = async (content: string) => {
@@ -68,8 +86,16 @@ const ChatPage: React.FC = () => {
         }),
       });
 
+      // Set isLoading to false after the message is sent
+      setIsLoading(false);
+
       // Add the server's response to the messages
       setMessages(prev => [...prev, response]);
+
+      // If transcription is enabled, fetch audio for the interviewer's response
+      if (isTranscriptionEnabled && response.role === 'Interviewer') {
+        await fetchAudio(response.content);
+      }
     } catch (error) {
       message.error('Failed to send message: ' + (error as Error).message);
     } finally {
@@ -114,6 +140,14 @@ const ChatPage: React.FC = () => {
     return messages.filter(msg => msg.role === 'Interviewer').slice(-1)[0];
   };
 
+  const handleToggleTranscription = () => {
+    setIsTranscriptionEnabled(prev => !prev);
+    // Clear current audio when toggling off
+    if (isTranscriptionEnabled) {
+      setCurrentAudioUrl(undefined);
+    }
+  };
+
   return (
     <div className="flex flex-col h-full">
       {isLoading && (
@@ -125,6 +159,9 @@ const ChatPage: React.FC = () => {
       {isInterviewMode ? (
         <InterviewWindow 
           latestMessage={getMostRecentInterviewerMessage()}
+          isTranscriptionEnabled={isTranscriptionEnabled}
+          onToggleTranscription={handleToggleTranscription}
+          audioUrl={currentAudioUrl}
         />
       ) : (
         <MessageWindow 

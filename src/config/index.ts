@@ -8,6 +8,7 @@ interface Config {
     BIOGRAPHY_LATEST: string;
     BIOGRAPHY_EDIT: string;
     TRANSCRIBE: string;
+    TEXT_TO_SPEECH: string;
   };
 }
 
@@ -21,6 +22,7 @@ const config: Config = {
     BIOGRAPHY_LATEST: '/biography/latest',
     BIOGRAPHY_EDIT: '/biography/edit',
     TRANSCRIBE: '/transcribe',
+    TEXT_TO_SPEECH: '/text-to-speech',
   },
 };
 
