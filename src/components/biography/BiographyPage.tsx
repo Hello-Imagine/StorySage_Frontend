@@ -19,6 +19,28 @@ const BiographyPage: React.FC = () => {
   const [editedBiography, setEditedBiography] = useState<Biography | null>(null);
   const [edits, setEdits] = useState<BiographyEdit[]>([]);
 
+  useEffect(() => {
+    const fetchBiography = async () => {
+      try {
+        setLoading(true);
+        const data = await apiClient('BIOGRAPHY_LATEST', {
+          method: 'GET',
+        });
+        setBiography(data);
+      } catch (error) {
+        if (error instanceof Error && 'status' in error && error.status === 404) {
+          setBiography(null);
+        } else {
+          setError(error instanceof Error ? error.message : 'Failed to load biography');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBiography();
+  }, []);
+
   const handleExportPDF = () => {
     if (!biography) return;
     try {
@@ -121,7 +143,6 @@ const BiographyPage: React.FC = () => {
     setEditedBiography(null);
     setEdits([]);
   };
-
 
   const handleBiographyTitleChange = (sectionId: string, oldTitle: string, newTitle: string) => {
     if (!editedBiography) return;
@@ -380,30 +401,6 @@ const BiographyPage: React.FC = () => {
       timestamp: Date.now()
     }));
   };
-
-  useEffect(() => {
-    const fetchBiography = async () => {
-      try {
-        setLoading(true);
-        const data = await apiClient('BIOGRAPHY_LATEST', {
-          method: 'GET',
-        });
-        setBiography(data);
-      } catch (error) {
-        console.error('Error fetching biography:', error);
-        // Check if it's a 404 biography not found error
-        if (error instanceof Error && 'status' in error && error.status === 404) {
-          setBiography(null);
-        } else {
-          setError(error instanceof Error ? error.message : 'Failed to load biography');
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchBiography();
-  }, []);
 
   if (loading) {
     return (

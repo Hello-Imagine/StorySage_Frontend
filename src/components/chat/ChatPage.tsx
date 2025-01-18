@@ -24,17 +24,29 @@ const ChatPage: React.FC = () => {
         const data = await apiClient('MESSAGES', {
           method: 'GET',
         });
-        setMessages(data);
-        setHistoricalMessagesCount(data.length);
 
-        notification.success({
-          message: 'Welcome Back!',
-          description: "Hello! Welcome back to your biography interview. Let's continue where we left off!",
-          icon: <SmileOutlined style={{ color: '#108ee9' }} />,
-          placement: 'topRight',
-          duration: 3,
-        });
-        
+        setMessages(data.messages);
+        setHistoricalMessagesCount(data.messages.length);
+
+        if (data.has_active_session) {
+          notification.success({
+            message: 'Welcome Back!',
+            description: "Hello! Welcome back to your biography interview. Let's continue where we left off!",
+            icon: <SmileOutlined style={{ color: '#108ee9' }} />,
+            placement: 'topRight',
+            duration: 3,
+          });
+        } else {
+          // Add a welcome message from the interviewer if there's no active session
+          const welcomeMessage: Message = {
+            id: Date.now().toString(),
+            content: "Hello! I'm your AI interviewer. I'll be asking you questions to help create your biography. Let's begin!",
+            created_at: new Date().toISOString(),
+            role: 'Interviewer'
+          };
+          setMessages(prev => [...prev, welcomeMessage]);
+          setHistoricalMessagesCount(prev => prev + 1);
+        }
       } catch (error) {
         message.error('Failed to fetch messages: ' + (error as Error).message);
       }
@@ -121,7 +133,7 @@ const ChatPage: React.FC = () => {
           key: 'bioUpdate', // Using same key will replace the loading message
           duration: 2 
         });
-        navigate('/');
+        navigate('/biography');
       } else {
         message.error({ 
           content: 'Failed to end session: ' + response.message,
@@ -129,10 +141,20 @@ const ChatPage: React.FC = () => {
         });
       }
     } catch (error) {
-      message.error({ 
-        content: 'Failed to end session: ' + (error as Error).message,
-        key: 'bioUpdate'
-      });
+      // Check if it's a timeout error (status code 408)
+      if (error instanceof Error && 'status' in error && error.status === 408) {
+        message.info({ 
+          content: 'Your biography is being generated and it may take a few minutes. You can check back later in the biography section.',
+          key: 'bioUpdate',
+          duration: 5
+        });
+        navigate('/');
+      } else {
+        message.error({ 
+          content: 'Failed to end session: ' + (error as Error).message,
+          key: 'bioUpdate'
+        });
+      }
     }
   };
 
