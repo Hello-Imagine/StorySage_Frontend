@@ -50,12 +50,14 @@ export async function apiClient(
     // Directed to login page if token is expired (aka unauthorized)
     if (response.status === 401) {
       handleUnauthorized();
+    } 
+    // Or throw an error if the request failed
+    else {
+      throw new ApiError(
+        response.status,
+        data?.detail || data?.message || 'Request failed'
+      );
     }
-
-    // throw new ApiError(
-    //   response.status,
-    //   data?.detail || data?.message || 'Request failed'
-    // );
   }
 
   return data;
