@@ -32,19 +32,52 @@ export const sortSectionsByNumber = (sections: Record<string, Section>): Record<
   );
 };
 
-export const findParentSection = (sections: Record<string, Section>, childNumber: string): Section | null => {
-  const parentNumber = childNumber.split('.').slice(0, -1).join('.');
-  if (!parentNumber) return null;  // Top-level section
+interface ParentSectionResult {
+  parent: Section | null;
+  path: string;
+}
 
-  for (const [, section] of Object.entries(sections)) {
-    const currentNumber = section.title.split(' ')[0];
-    if (currentNumber === parentNumber) return section;
-    
-    const foundInSubsections = findParentSection(section.subsections, childNumber);
-    if (foundInSubsections) return foundInSubsections;
-  }
+export const findParentSection = (
+  sections: Record<string, Section>, 
+  sectionNumber: string
+): ParentSectionResult => {
+  const parts = sectionNumber.split('.');
+  parts.pop(); // Remove the last part since we want the parent
   
-  return null;
+  if (parts.length === 0) {
+    return { parent: null, path: '' };
+  }
+
+  const currentPath: string[] = [];
+  let parent: Section | null = null;
+
+  const findSectionByNumber = (
+    sections: Record<string, Section>, 
+    remainingParts: string[]
+  ): Section | null => {
+    if (remainingParts.length === 0) return null;
+    
+    const targetNumber = remainingParts.join('.');
+    
+    for (const [key, section] of Object.entries(sections)) {
+      const [sectionNumber] = key.split(' ');
+      if (sectionNumber === targetNumber) {
+        currentPath.push(key);
+        return section;
+      }
+      
+      if (targetNumber.startsWith(sectionNumber + '.')) {
+        currentPath.push(key);
+        const found = findSectionByNumber(section.subsections, remainingParts);
+        if (found) return found;
+        currentPath.pop();
+      }
+    }
+    return null;
+  };
+
+  parent = findSectionByNumber(sections, parts);
+  return { parent, path: currentPath.join('/') };
 };
 
 export const isValidSubsectionNumber = (parentNumber: string, childNumber: string): boolean => {

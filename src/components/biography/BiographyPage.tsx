@@ -189,8 +189,6 @@ const BiographyPage: React.FC = () => {
 
     // Sort the parent's sections
     const sortedParent = sortSectionsByNumber(updatedParent);
-
-    // Update the biography state by replacing the parent's sections
     const updateParentSections = (sections: Record<string, Section>): Record<string, Section> => {
       const newSections = { ...sections };
       
@@ -220,21 +218,52 @@ const BiographyPage: React.FC = () => {
         ...editedBiography,
         subsections: sortedParent
       });
-    } else {
-      // Otherwise, update the parent's subsections recursively
+    } 
+    // Otherwise, update the parent's subsections recursively
+    else {
       setEditedBiography({
         ...editedBiography,
         subsections: updateParentSections(editedBiography.subsections)
       });
     }
 
-    setEdits(prev => addOrUpdateEdit(prev, {
-      type: 'RENAME',
-      sectionId: section.id,
-      title: section.title,
-      data: { newTitle },
-      timestamp: Date.now()
-    }));
+    // Update the edits
+    if (section.isNew) {
+      // For new sections, update the title in the ADD edit
+      setEdits(prev => {
+        const newEdits = [...prev];
+        const addEditIndex = newEdits.findIndex(
+          edit => edit.type === 'ADD' && edit.sectionId === section.id
+        );
+        
+        if (addEditIndex !== -1) {
+          const oldPath = newEdits[addEditIndex].data?.newPath || newTitle;
+          // Split the path and replace the last segment with new title
+          const pathParts = oldPath.split('/');
+          pathParts[pathParts.length - 1] = newTitle;
+          const newPath = pathParts.join('/');
+
+          newEdits[addEditIndex] = {
+            ...newEdits[addEditIndex],
+            title: newTitle,
+            data: {
+              ...newEdits[addEditIndex].data,
+              newPath
+            }
+          };
+        }
+        return newEdits;
+      });
+    } else {
+      // For existing sections, create a RENAME edit
+      setEdits(prev => addOrUpdateEdit(prev, {
+        type: 'RENAME',
+        sectionId: section.id,
+        title: section.title,
+        data: { newTitle },
+        timestamp: Date.now()
+      }));
+    }
   };
 
   const handleAddSection = (sectionNumber: string, title: string, sectionPrompt: string) => {
@@ -244,16 +273,19 @@ const BiographyPage: React.FC = () => {
     const newSection: Section = {
       id: `section-${Date.now()}`,
       title: fullTitle,
-      content: 'AI Writing Suggestions:' + sectionPrompt,
+      content: sectionPrompt,
       subsections: {},
       created_at: new Date().toISOString(),
       last_edit: new Date().toISOString(),
       isNew: true
     };
 
-    const parentSection = findParentSection(editedBiography.subsections, sectionNumber);
+    const { parent: parentSection, path: parentPath } = findParentSection(editedBiography.subsections, sectionNumber);
     const parentTitle = parentSection ? parentSection.title : "";
     
+    // Calculate new path
+    const newPath = parentPath ? `${parentPath}/${fullTitle}` : fullTitle;
+
     if (!parentTitle) {
       // Add as top-level section
       setEditedBiography({
@@ -302,8 +334,8 @@ const BiographyPage: React.FC = () => {
       sectionId: newSection.id,
       title: fullTitle,
       data: { 
-        parentTitle,
-        sectionPrompt
+        sectionPrompt,
+        newPath
       },
       timestamp: Date.now()
     }));
@@ -336,12 +368,20 @@ const BiographyPage: React.FC = () => {
       subsections: updatedSubsections
     });
 
-    setEdits(prev => addOrUpdateEdit(prev, {
-      type: 'DELETE',
-      sectionId: section.id,
-      title: section.title,
-      timestamp: Date.now()
-    }));
+    if (section.isNew) {
+      // For new sections, remove the ADD edit
+      setEdits(prev => prev.filter(edit => 
+        !(edit.type === 'ADD' && edit.sectionId === section.id)
+      ));
+    } else {
+      // For existing sections, create a DELETE edit
+      setEdits(prev => addOrUpdateEdit(prev, {
+        type: 'DELETE',
+        sectionId: section.id,
+        title: section.title,
+        timestamp: Date.now()
+      }));
+    }
   };
 
   const handleAddComment = (
@@ -393,13 +433,35 @@ const BiographyPage: React.FC = () => {
       subsections: updateSectionContent(editedBiography.subsections, section.id)
     });
 
-    setEdits(prev => addOrUpdateEdit(prev, {
-      type: 'CONTENT_CHANGE',
-      sectionId: section.id,
-      title: section.title,
-      data: { newContent },
-      timestamp: Date.now()
-    }));
+    if (section.isNew) {
+      // For new sections, update the sectionPrompt in the ADD edit
+      setEdits(prev => {
+        const newEdits = [...prev];
+        const addEditIndex = newEdits.findIndex(
+          edit => edit.type === 'ADD' && edit.sectionId === section.id
+        );
+        
+        if (addEditIndex !== -1) {
+          newEdits[addEditIndex] = {
+            ...newEdits[addEditIndex],
+            data: {
+              ...newEdits[addEditIndex].data,
+              sectionPrompt: newContent
+            }
+          };
+        }
+        return newEdits;
+      });
+    } else {
+      // For existing sections, create a CONTENT_CHANGE edit
+      setEdits(prev => addOrUpdateEdit(prev, {
+        type: 'CONTENT_CHANGE',
+        sectionId: section.id,
+        title: section.title,
+        data: { newContent },
+        timestamp: Date.now()
+      }));
+    }
   };
 
   if (loading) {

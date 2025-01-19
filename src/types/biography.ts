@@ -23,9 +23,9 @@ export interface BiographyEdit {
   title: string;
   data?: {
     newTitle?: string;
-    parentTitle?: string;
     sectionPrompt?: string;
     newContent?: string;
+    newPath?: string;
     comment?: {
       text: string;
       comment: string;
