@@ -18,6 +18,7 @@ const BiographyPage: React.FC = () => {
   const [editMode, setEditMode] = useState(false);
   const [editedBiography, setEditedBiography] = useState<Biography | null>(null);
   const [edits, setEdits] = useState<BiographyEdit[]>([]);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const fetchBiography = async () => {
@@ -70,6 +71,7 @@ const BiographyPage: React.FC = () => {
 
   const handleSave = async () => {
     try {
+      setSaving(true);
       // Validate new sections
       const addEdits = edits.filter(edit => edit.type === 'ADD');
       if (addEdits.length > 0 && biography) {
@@ -135,6 +137,8 @@ const BiographyPage: React.FC = () => {
       
       // Generic error message as fallback
       message.error('Failed to update biography');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -507,6 +511,7 @@ const BiographyPage: React.FC = () => {
                   type="primary"
                   icon={<SaveOutlined />}
                   onClick={handleSave}
+                  loading={saving}
                   className="flex items-center justify-center"
                 >
                   Save
