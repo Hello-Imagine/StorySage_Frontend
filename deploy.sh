@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Ensure proper permissions for SSL certificates
+sudo chmod -R 755 /etc/letsencrypt/live
+sudo chmod -R 755 /etc/letsencrypt/archive
+
 # Check if Docker is running
 if ! docker info > /dev/null 2>&1; then
     echo "Docker is not running or you don't have permissions."
@@ -85,9 +89,11 @@ if [ "$ENV" = "development" ]; then
       ${IMAGE_NAME}:latest
 # For production deployment
 else
-    echo "Starting container in production mode on port 80..."
+    echo "Starting container in production mode..."
     docker run -d \
       -p 80:80 \
+      -p 443:443 \
+      -v /etc/letsencrypt:/etc/letsencrypt:ro \
       -e VITE_API_BASE_URL=$VITE_API_BASE_URL \
       --network ai-friend-network \
       --name ${CONTAINER_NAME} \
