@@ -1,14 +1,12 @@
 import React, { useState, useRef, KeyboardEvent, useEffect } from 'react';
 import { transcribeAudio } from '../../utils/api';
-import { Popconfirm } from 'antd';
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
-  onEndSession: () => void;
   disabled?: boolean;
 }
 
-const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, onEndSession, disabled }) => {
+const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled }) => {
   const [message, setMessage] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -137,24 +135,6 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, onEndSession, disa
 
   return (
     <div className="min-h-chat-input-min max-h-chat-input-max flex items-stretch bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-4 py-2">
-      <div className="w-1/5 flex items-center justify-center">
-        <div className="w-12 h-12 flex items-center justify-center">
-          <Popconfirm
-            title="End Session"
-            description="Are you sure you want to end this session?"
-            onConfirm={onEndSession}
-            okText="Yes"
-            cancelText="No"
-            placement="topRight"
-          >
-            <img 
-              src="/icon/stop.png" 
-              alt="End Session" 
-              className="h-8 w-8 cursor-pointer" 
-            />
-          </Popconfirm>
-        </div>
-      </div>
 
       {isTypingMode ? (
         <>

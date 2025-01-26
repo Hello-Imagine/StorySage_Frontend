@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { message, Spin, notification } from 'antd';
+import { message, Spin, notification, Popconfirm } from 'antd';
 import { SmileOutlined } from '@ant-design/icons';
 import MessageWindow from './message-window/MessageWindow';
 import InterviewWindow from './interview-window/InterviewWindow';
@@ -171,12 +171,29 @@ const ChatPage: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full relative">
       {isLoading && (
         <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
           <Spin size="large" />
         </div>
       )}
+      
+      <div className="absolute top-4 right-4 z-10">
+        <Popconfirm
+          title="End Session"
+          description="Are you sure you want to end this session?"
+          onConfirm={handleEndSession}
+          okText="Yes"
+          cancelText="No"
+          placement="bottomLeft"
+        >
+          <img 
+            src="/icon/stop.png" 
+            alt="End Session" 
+            className="h-8 w-8 cursor-pointer hover:opacity-80" 
+          />
+        </Popconfirm>
+      </div>
       
       {isInterviewMode ? (
         <InterviewWindow 
@@ -195,7 +212,6 @@ const ChatPage: React.FC = () => {
       <div className="relative">
         <ChatInput 
           onSendMessage={handleSendMessage} 
-          onEndSession={handleEndSession}
           disabled={isLoading} 
         />
       </div>
