@@ -33,7 +33,7 @@ const Register: React.FC = () => {
       // Log the user in with the received token
       login(values.userId.toLowerCase(), response.access_token);
       message.success('Registration successful!');
-      navigate('/');
+      navigate('/login');
     } catch (error) {
       console.error('Registration error:', error);
       if (error instanceof ApiError) {

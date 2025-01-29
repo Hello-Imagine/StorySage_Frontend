@@ -40,11 +40,14 @@ function App() {
       <div className="w-full h-full">
         <Router>
           <Routes>
-            <Route path="/login" element={
-              isAuthenticated ? <Navigate to="/" /> : <Login />
-            } />
-            <Route path="/register" element={
-              isAuthenticated ? <Navigate to="/" /> : <Register />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/" element={
+              isAuthenticated ? (
+                <AuthenticatedLayout>
+                  <Home />
+                </AuthenticatedLayout>
+              ) : <Navigate to="/login" />
             } />
             <Route path="/chat" element={
               isAuthenticated ? (
@@ -57,13 +60,6 @@ function App() {
               isAuthenticated ? (
                 <AuthenticatedLayout>
                   <ChatPage />
-                </AuthenticatedLayout>
-              ) : <Navigate to="/login" />
-            } />
-            <Route path="/" element={
-              isAuthenticated ? (
-                <AuthenticatedLayout>
-                  <Home />
                 </AuthenticatedLayout>
               ) : <Navigate to="/login" />
             } />
