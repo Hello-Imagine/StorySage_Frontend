@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Typography, Spin, Button, message, Space, Tooltip } from 'antd';
+import { Typography, Spin, Button, message, Space, Tooltip, Empty } from 'antd';
 import { EditOutlined, FileMarkdownOutlined, FilePdfOutlined, SaveOutlined, CloseOutlined } from '@ant-design/icons';
 import { Biography, Section, BiographyEdit } from '../../types/biography';
 import { RenderSection } from './sections/RenderSection';
@@ -487,14 +487,13 @@ const BiographyPage: React.FC = () => {
   if (!biography) {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-4">
-        <img 
-          src="stickers/404.png" 
-          alt="No biography found" 
-          className="w-32 h-32 object-contain"
+        <Empty
+          description={
+            <span className="text-gray-500 dark:text-gray-400">
+              Sorry, you did not have a biography yet 😥. Please continue chatting with your AI to create one.
+            </span>
+          }
         />
-        <p className="text-gray-500 dark:text-gray-400">
-          Sorry, you did not have a biography yet 😥. Please continue chatting with your AI to create one.
-        </p>
       </div>
     );
   }

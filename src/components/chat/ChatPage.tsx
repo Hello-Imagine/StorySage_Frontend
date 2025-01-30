@@ -7,16 +7,23 @@ import ChatInput from './ChatInput';
 import { Message } from '../../types/message';
 import { apiClient } from '../../utils/api';
 import { useNavigate, useLocation } from 'react-router-dom';
+import TopicSelectionModal from './TopicSelectionModal';
 
 const ChatPage: React.FC = () => {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [historicalMessagesCount, setHistoricalMessagesCount] = useState(0);
-  const [isTranscriptionEnabled, setIsTranscriptionEnabled] = useState(true);
-  const [currentAudioUrl, setCurrentAudioUrl] = useState<string>();
   const navigate = useNavigate();
   const location = useLocation();
   const isInterviewMode = location.pathname === '/user_chat';
+
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [historicalMessagesCount, setHistoricalMessagesCount] = useState(0);
+  
+  const [isTranscriptionEnabled, setIsTranscriptionEnabled] = useState(true);
+  const [currentAudioUrl, setCurrentAudioUrl] = useState<string>();
+
+  const [isTopicModalVisible, setIsTopicModalVisible] = useState(false);
+  const [sessionTopics, setSessionTopics] = useState<string[]>([]);
+  const [isEndingSession, setIsEndingSession] = useState(false);
 
   useEffect(() => {
     const fetchMessages = async () => {
@@ -115,24 +122,48 @@ const ChatPage: React.FC = () => {
     }
   };
 
-  const handleEndSession = async () => {
+  const handlePrepareEndSession = async () => {
+    try {
+      setIsEndingSession(true);
+      const response = await apiClient('PREPARE_END_SESSION', {
+        method: 'POST',
+      });
+
+      if (response.status === "success") {
+        setSessionTopics(response.topics);
+        setIsTopicModalVisible(true);
+      } else {
+        message.error('Failed to prepare session end: ' + response.message);
+      }
+    } catch (error) {
+      message.error('Failed to prepare session end: ' + (error as Error).message);
+    } finally {
+      setIsEndingSession(false);
+    }
+  };
+
+  const handleTopicSelection = async (selectedTopics: string[]) => {
     try {
       message.loading({ 
         content: '📝 Writing the biography. 😃 DON\'T QUIT', 
         key: 'bioUpdate',
-        duration: 0 // This makes the message persist until we manually close it
+        duration: 0
       });
 
       const response = await apiClient('END_SESSION', {
         method: 'POST',
+        body: JSON.stringify({
+          selected_topics: selectedTopics,
+        }),
       });
 
       if (response.status === "success") {
         message.success({ 
           content: 'Session ended successfully!',
-          key: 'bioUpdate', // Using same key will replace the loading message
+          key: 'bioUpdate',
           duration: 2 
         });
+        setIsTopicModalVisible(false);
         navigate('/biography');
       } else {
         message.error({ 
@@ -148,6 +179,7 @@ const ChatPage: React.FC = () => {
           key: 'bioUpdate',
           duration: 5
         });
+        setIsTopicModalVisible(false);
         navigate('/');
       } else {
         message.error({ 
@@ -182,7 +214,7 @@ const ChatPage: React.FC = () => {
         <Popconfirm
           title="End Session"
           description="Are you sure you want to end this session?"
-          onConfirm={handleEndSession}
+          onConfirm={handlePrepareEndSession}
           okText="Yes"
           cancelText="No"
           placement="bottomLeft"
@@ -194,6 +226,13 @@ const ChatPage: React.FC = () => {
           />
         </Popconfirm>
       </div>
+
+      <TopicSelectionModal
+        isVisible={isTopicModalVisible}
+        topics={sessionTopics}
+        onOk={handleTopicSelection}
+        loading={isEndingSession}
+      />
       
       {isInterviewMode ? (
         <InterviewWindow 
