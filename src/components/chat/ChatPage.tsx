@@ -7,8 +7,9 @@ import ChatInput from './ChatInput';
 import { Message } from '../../types/message';
 import { apiClient } from '../../utils/api';
 import { useNavigate, useLocation } from 'react-router-dom';
-import TopicSelectionModal from './TopicSelectionModal';
 import { WELCOME_MESSAGES } from '../../constants/messages';
+import TopicSelectionModal from './modals/TopicSelectionModal';
+import FeedbackModal from './modals/FeedbackModal';
 
 const ChatPage: React.FC = () => {
   const navigate = useNavigate();
@@ -28,6 +29,8 @@ const ChatPage: React.FC = () => {
   const [isTopicModalVisible, setIsTopicModalVisible] = useState(false);
   const [sessionTopics, setSessionTopics] = useState<string[]>([]);
   const [isEndingSession, setIsEndingSession] = useState(false);
+  const [isFeedbackModalVisible, setIsFeedbackModalVisible] = useState(false);
+  const [sessionFeedback, setSessionFeedback] = useState<{ rating: number; feedback: string } | null>(null);
   
   // Like and skip actions
   const [isSkipping, setIsSkipping] = useState(false);
@@ -139,7 +142,7 @@ const ChatPage: React.FC = () => {
 
       if (response.status === "success") {
         setSessionTopics(response.topics);
-        setIsTopicModalVisible(true);
+        setIsFeedbackModalVisible(true);
       } else {
         message.error('Failed to prepare session end: ' + response.message);
       }
@@ -147,6 +150,19 @@ const ChatPage: React.FC = () => {
       message.error('Failed to prepare session end: ' + (error as Error).message);
     } finally {
       setIsEndingSession(false);
+    }
+  };
+
+  const handleFeedbackSubmit = async (rating: number, feedback: string) => {
+    try {
+      // Store feedback for later use
+      setSessionFeedback({ rating, feedback });
+      
+      // Close feedback modal and show topic selection modal
+      setIsFeedbackModalVisible(false);
+      setIsTopicModalVisible(true);
+    } catch (error) {
+      message.error('Failed to submit feedback: ' + (error as Error).message);
     }
   };
 
@@ -162,6 +178,7 @@ const ChatPage: React.FC = () => {
         method: 'POST',
         body: JSON.stringify({
           selected_topics: selectedTopics,
+          feedback: sessionFeedback
         }),
       });
 
@@ -270,6 +287,12 @@ const ChatPage: React.FC = () => {
           />
         </Popconfirm>
       </div>
+
+      <FeedbackModal
+        isVisible={isFeedbackModalVisible}
+        onOk={handleFeedbackSubmit}
+        loading={isEndingSession}
+      />
 
       <TopicSelectionModal
         isVisible={isTopicModalVisible}
