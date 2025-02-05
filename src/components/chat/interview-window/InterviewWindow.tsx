@@ -73,11 +73,10 @@ const InterviewWindow: React.FC<InterviewWindowProps> = ({
 
               {/* Only show buttons if it's not a initial welcome message */}
               {!latestMessage.content.includes(WELCOME_MESSAGES.INITIAL_INTERVIEW) && (
-                <Space className="w-full justify-center mt-6">
+                <Space className="absolute -bottom-2 right-2">
                   <Button 
                     icon={<LikeOutlined />} 
                     onClick={onLike}
-                    size="large"
                     shape="circle"
                     disabled={isLiked}
                     className={isLiked ? 'text-blue-500' : ''}
@@ -86,7 +85,6 @@ const InterviewWindow: React.FC<InterviewWindowProps> = ({
                     icon={<StepForwardOutlined />} 
                     onClick={onSkip}
                     loading={isSkipping}
-                    size="large"
                     shape="circle"
                   />
                 </Space>
