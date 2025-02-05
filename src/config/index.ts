@@ -10,6 +10,8 @@ interface Config {
     BIOGRAPHY_EDIT: string;
     TRANSCRIBE: string;
     TEXT_TO_SPEECH: string;
+    LIKE: string;
+    SKIP: string;
   };
 }
 
@@ -25,6 +27,8 @@ const config: Config = {
     BIOGRAPHY_EDIT: '/biography/edit',
     TRANSCRIBE: '/transcribe',
     TEXT_TO_SPEECH: '/text-to-speech',
+    LIKE: '/like',
+    SKIP: '/skip',
   },
 };
 

@@ -1,21 +1,30 @@
 import React, { useMemo, useRef } from 'react';
 import { Message } from '../../../types/message';
 import { motion } from 'framer-motion';
-import { Button } from 'antd';
-import { AudioOutlined, AudioMutedOutlined } from '@ant-design/icons';
+import { Button, Space } from 'antd';
+import { AudioOutlined, AudioMutedOutlined, LikeOutlined, StepForwardOutlined } from '@ant-design/icons';
+import { WELCOME_MESSAGES } from '../../../constants/messages';
 
 interface InterviewWindowProps {
   latestMessage?: Message;
   isTranscriptionEnabled: boolean;
   onToggleTranscription: () => void;
   audioUrl?: string;
+  onLike: () => void;
+  onSkip: () => void;
+  isSkipping?: boolean;
+  isLiked?: boolean;
 }
 
 const InterviewWindow: React.FC<InterviewWindowProps> = ({ 
   latestMessage, 
   isTranscriptionEnabled,
   onToggleTranscription,
-  audioUrl
+  audioUrl,
+  onLike,
+  onSkip,
+  isSkipping,
+  isLiked
 }) => {
   const audioRef = useRef<HTMLAudioElement>(null);
   // Pick a random sticker from 1-7 to display
@@ -57,12 +66,35 @@ const InterviewWindow: React.FC<InterviewWindowProps> = ({
           />
           
           {latestMessage ? (
-            <div className="text-lg text-gray-800 dark:text-gray-200">
-              {latestMessage.content}
-            </div>
+            <>
+              <div className="text-lg text-gray-800 dark:text-gray-200">
+                {latestMessage.content}
+              </div>
+
+              {/* Only show buttons if it's not a initial welcome message */}
+              {!latestMessage.content.includes(WELCOME_MESSAGES.INITIAL_INTERVIEW) && (
+                <Space className="w-full justify-center mt-6">
+                  <Button 
+                    icon={<LikeOutlined />} 
+                    onClick={onLike}
+                    size="large"
+                    shape="circle"
+                    disabled={isLiked}
+                    className={isLiked ? 'text-blue-500' : ''}
+                  />
+                  <Button 
+                    icon={<StepForwardOutlined />} 
+                    onClick={onSkip}
+                    loading={isSkipping}
+                    size="large"
+                    shape="circle"
+                  />
+                </Space>
+              )}
+            </>
           ) : (
             <div className="text-lg text-gray-500 dark:text-gray-400 text-center">
-              Welcome! Let's start the interview.
+              {WELCOME_MESSAGES.INITIAL_INTERVIEW}
             </div>
           )}
 

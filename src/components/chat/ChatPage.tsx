@@ -8,22 +8,30 @@ import { Message } from '../../types/message';
 import { apiClient } from '../../utils/api';
 import { useNavigate, useLocation } from 'react-router-dom';
 import TopicSelectionModal from './TopicSelectionModal';
+import { WELCOME_MESSAGES } from '../../constants/messages';
 
 const ChatPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isInterviewMode = location.pathname === '/user_chat';
 
+  // Chat messages
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [historicalMessagesCount, setHistoricalMessagesCount] = useState(0);
   
+  // Transcription
   const [isTranscriptionEnabled, setIsTranscriptionEnabled] = useState(true);
   const [currentAudioUrl, setCurrentAudioUrl] = useState<string>();
 
+  // End session
   const [isTopicModalVisible, setIsTopicModalVisible] = useState(false);
   const [sessionTopics, setSessionTopics] = useState<string[]>([]);
   const [isEndingSession, setIsEndingSession] = useState(false);
+  
+  // Like and skip actions
+  const [isSkipping, setIsSkipping] = useState(false);
+  const [likedMessageIds, setLikedMessageIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const fetchMessages = async () => {
@@ -38,7 +46,7 @@ const ChatPage: React.FC = () => {
         if (data.has_active_session) {
           notification.success({
             message: 'Welcome Back!',
-            description: "Hello! Welcome back to your biography interview. Let's continue where we left off!",
+            description: WELCOME_MESSAGES.WELCOME_BACK,
             icon: <SmileOutlined style={{ color: '#108ee9' }} />,
             placement: 'topRight',
             duration: 3,
@@ -47,7 +55,7 @@ const ChatPage: React.FC = () => {
           // Add a welcome message from the interviewer if there's no active session
           const welcomeMessage: Message = {
             id: Date.now().toString(),
-            content: "Hello! I'm your AI interviewer. I'll be asking you questions to help create your biography. Let's begin!",
+            content: WELCOME_MESSAGES.INITIAL_INTERVIEW,
             created_at: new Date().toISOString(),
             role: 'Interviewer'
           };
@@ -202,6 +210,42 @@ const ChatPage: React.FC = () => {
     }
   };
 
+  const handleLike = async () => {
+    const currentMessage = getMostRecentInterviewerMessage();
+    if (!currentMessage || likedMessageIds.has(currentMessage.id)) return;
+
+    try {
+      await apiClient('LIKE', {
+        method: 'POST',
+      });
+      message.success('Liked!');
+      setLikedMessageIds(prev => new Set(prev).add(currentMessage.id));
+    } catch (error) {
+      message.error('Failed to send like: ' + (error as Error).message);
+    }
+  };
+
+  const handleSkip = async () => {
+    try {
+      setIsSkipping(true);
+      const response: Message = await apiClient('SKIP', {
+        method: 'POST',
+      });
+
+      // Add the interviewer's response to messages
+      setMessages(prev => [...prev, response]);
+
+      // If transcription is enabled, fetch audio for the new response
+      if (isTranscriptionEnabled && response.role === 'Interviewer') {
+        await fetchAudio(response.content);
+      }
+    } catch (error) {
+      message.error('Failed to skip: ' + (error as Error).message);
+    } finally {
+      setIsSkipping(false);
+    }
+  };
+
   return (
     <div className="flex flex-col h-full relative">
       {isLoading && (
@@ -240,6 +284,10 @@ const ChatPage: React.FC = () => {
           isTranscriptionEnabled={isTranscriptionEnabled}
           onToggleTranscription={handleToggleTranscription}
           audioUrl={currentAudioUrl}
+          onLike={handleLike}
+          onSkip={handleSkip}
+          isSkipping={isSkipping}
+          isLiked={!!getMostRecentInterviewerMessage()?.id && likedMessageIds.has(getMostRecentInterviewerMessage()!.id)}
         />
       ) : (
         <MessageWindow 
