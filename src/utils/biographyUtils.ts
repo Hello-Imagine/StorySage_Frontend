@@ -1,5 +1,14 @@
 import { BiographyEdit, Section } from '../types/biography';
 
+/**
+ * Formats content by hiding memo ID references (e.g., [MEM_123456_ABC])
+ */
+export const formatContent = (content: string): string => {
+  if (!content) return '';
+  return content.replace(/\[MEM_[^\]]+\]/g, '');
+};
+
+
 export const addOrUpdateEdit = (prevEdits: BiographyEdit[], newEdit: BiographyEdit): BiographyEdit[] => {
   // For comments, we don't filter out previous edits
   if (newEdit.type === 'COMMENT') {

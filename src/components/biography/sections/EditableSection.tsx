@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Input, Button, Space, Popconfirm, Badge } from 'antd';
+import { Input, Button, Space, Popconfirm, Badge, message } from 'antd';
 import { PlusOutlined, DeleteOutlined, EditOutlined, CheckOutlined, CommentOutlined } from '@ant-design/icons';
 import { Section, BiographyEdit } from '../../../types/biography';
 import { AddSectionModal } from '../modals/AddSectionModal';
 import { CommentPopup } from '../comments/CommentPopup';
 import { CommentsDrawer } from '../comments/CommentsDrawer';
+import { formatContent } from '../../../utils/biographyUtils';
 
 interface EditableSectionProps {
   section: Section & { isNew?: boolean };
@@ -64,6 +65,7 @@ export const EditableSection: React.FC<EditableSectionProps> = ({
   const handleContentEditClick = () => {
     setIsContentEditing(true);
     setOriginalContent(section.content);
+    message.info('Please keep the [MEM_...] references in the content - they are used for linking but won\'t be displayed', 3);
   };
 
   const handleContentConfirmClick = () => {
@@ -202,7 +204,7 @@ export const EditableSection: React.FC<EditableSectionProps> = ({
                 onMouseUp={section.isNew ? undefined : handleTextSelection}
               >
                 <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line">
-                  {section.content}
+                  {formatContent(section.content)}
                 </p>
               </div>
             )}

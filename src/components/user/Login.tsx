@@ -4,7 +4,7 @@ import { UserOutlined, LockOutlined } from '@ant-design/icons';
 // eslint-disable-next-line
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
-import { apiClient } from '../../utils/api';
+import { apiClient, ApiError } from '../../utils/api';
 
 interface LoginForm {
   userId: string;
@@ -31,7 +31,11 @@ const Login: React.FC = () => {
       message.success('Login successful with userId: ' + values.userId.toLowerCase());
       navigate('/');
     } catch (error) {
-      message.error('Login failed: ' + (error as Error).message);
+      if (error instanceof ApiError && error.status === 401) {
+        message.error('Login failed: ' + (error as Error).message);
+      } else {
+        message.error('Login failed: ' + (error as Error).message);
+      }
     }
   };
 
