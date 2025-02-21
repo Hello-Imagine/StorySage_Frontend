@@ -1,6 +1,7 @@
 import React from 'react';
 import { Typography } from 'antd';
 import { Section } from '../../../types/biography';
+import { formatContent } from '../../../utils/biographyUtils';
 
 const { Title, Paragraph } = Typography;
 
@@ -19,7 +20,7 @@ export const RenderSection: React.FC<RenderSectionProps> = ({ section, level }) 
       </Title>
       {section.content && (
         <Paragraph className="text-gray-700 dark:text-gray-300 text-base whitespace-pre-line">
-          {section.content}
+          {formatContent(section.content)}
         </Paragraph>
       )}
       {Object.values(section.subsections).map((subsection) => (

@@ -1,20 +1,19 @@
 import jsPDF from 'jspdf';
 import { Biography, Section } from '../types/biography';
+import { formatContent } from './biographyUtils';
 
-// Helper function to convert section to markdown
-const sectionToMarkdown = (section: Section, level: number): string => {
-  const heading = '#'.repeat(level);
-  let markdown = `${heading} ${section.title}\n\n`;
+const formatSectionForMarkdownExport = (section: Section, level: number = 1): string => {
+  let content = `${'#'.repeat(level)} ${section.title}\n\n`;
   
   if (section.content) {
-    markdown += `${section.content}\n\n`;
+    content += `${formatContent(section.content)}\n\n`;
   }
-  
+
   Object.values(section.subsections).forEach(subsection => {
-    markdown += sectionToMarkdown(subsection, level + 1);
+    content += formatSectionForMarkdownExport(subsection, level + 1);
   });
-  
-  return markdown;
+
+  return content;
 };
 
 export const exportToPDF = (biography: Biography) => {
@@ -59,7 +58,7 @@ export const exportToPDF = (biography: Biography) => {
   // Main content
   if (biography.content) {
     contents.push({
-      text: biography.content,
+      text: formatContent(biography.content),
       fontSize: formatConfig.content.fontSize,
       isTitle: false,
       level: 1
@@ -77,7 +76,7 @@ export const exportToPDF = (biography: Biography) => {
 
     if (section.content) {
       contents.push({
-        text: section.content,
+        text: formatContent(section.content),
         fontSize: formatConfig.content.fontSize,
         isTitle: false,
         level
@@ -127,26 +126,24 @@ export const exportToPDF = (biography: Biography) => {
 };
 
 export const exportToMarkdown = (biography: Biography) => {
-  // Generate markdown content
-  let markdown = `# ${biography.title}\n\n`;
+  let content = `# ${biography.title}\n\n`;
   
   if (biography.content) {
-    markdown += `${biography.content}\n\n`;
+    content += `${formatContent(biography.content)}\n\n`;
   }
 
-  // Add sections
   Object.values(biography.subsections).forEach(section => {
-    markdown += sectionToMarkdown(section, 2);
+    content += formatSectionForMarkdownExport(section, 2);
   });
 
-  // Create and download file
-  const blob = new Blob([markdown], { type: 'text/markdown' });
+  // Create and download the file
+  const blob = new Blob([content], { type: 'text/markdown' });
   const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `${biography.title.toLowerCase().replace(/\s+/g, '_')}.md`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${biography.title.toLowerCase().replace(/\s+/g, '-')}.md`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }; 
