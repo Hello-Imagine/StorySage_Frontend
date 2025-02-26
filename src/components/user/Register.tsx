@@ -1,5 +1,6 @@
 import React from 'react';
 import { Form, Input, Button, Card, message } from 'antd';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { UserOutlined, LockOutlined, MailOutlined } from '@ant-design/icons';
 import { Link, useNavigate } from 'react-router-dom';
 import { apiClient } from '../../utils/api';
@@ -88,7 +89,7 @@ const Register: React.FC = () => {
             />
           </Form.Item>
 
-          <Form.Item
+          {/* <Form.Item
             name="email"
             rules={[
               { required: true, message: 'Please input your email!' },
@@ -100,7 +101,7 @@ const Register: React.FC = () => {
               placeholder="Email"
               size="large"
             />
-          </Form.Item>
+          </Form.Item> */}
 
           <Form.Item
             name="password"
