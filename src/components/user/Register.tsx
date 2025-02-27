@@ -1,7 +1,6 @@
 import React from 'react';
 import { Form, Input, Button, Card, message } from 'antd';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { UserOutlined, LockOutlined, MailOutlined } from '@ant-design/icons';
+import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { Link, useNavigate } from 'react-router-dom';
 import { apiClient } from '../../utils/api';
 import { ApiError } from '../../utils/api';
