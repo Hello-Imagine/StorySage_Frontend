@@ -17,17 +17,17 @@ const Header: React.FC = () => {
       key: 'history',
       label: 'Conversation History',
     },
-    {
-      key: 'logs',
-      label: 'Execution Logs',
-    },
+    // {
+    //   key: 'logs',
+    //   label: 'Execution Logs',
+    // },
   ];
 
   const handleMenuClick: MenuProps['onClick'] = (e) => {
     if (e.key === 'biography') {
       navigate('/biography');
     } else if (e.key === 'history') {
-      message.info('Check files under /logs/' + userId + '/execution_logs/chat_history.log');
+      navigate('/chat');
     } else if (e.key === 'logs') {
       message.info('Check files under /logs/' + userId + '/execution_logs/');
     }
