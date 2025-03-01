@@ -1,7 +1,7 @@
 import React, { useMemo, useRef } from 'react';
 import { Message } from '../../../types/message';
 import { motion } from 'framer-motion';
-import { Button, Space, Popconfirm } from 'antd';
+import { Button, Space, Popconfirm, Tooltip } from 'antd';
 import { AudioOutlined, AudioMutedOutlined, LikeOutlined, StepForwardOutlined } from '@ant-design/icons';
 import { WELCOME_MESSAGES } from '../../../constants/messages';
 
@@ -74,38 +74,38 @@ const InterviewWindow: React.FC<InterviewWindowProps> = ({
               {/* Only show buttons if it's not a initial welcome message */}
               {!latestMessage.content.includes(WELCOME_MESSAGES.INITIAL_INTERVIEW) && (
                 <Space className="absolute -bottom-2 right-2">
-                  <Popconfirm
-                    title="Like this response?"
-                    description="This helps us understand which questions are the best for you."
-                    onConfirm={onLike}
-                    okText="Yes"
-                    cancelText="No"
-                    placement="topRight"
-                    disabled={isLiked}
+                  <Tooltip 
+                    title={<>
+                      Liked this particular question?
+                      <br />
+                      Let us know!
+                    </>}
+                    placement="top"
                   >
                     <Button 
                       icon={<LikeOutlined />} 
+                      onClick={onLike}
                       shape="circle"
                       disabled={isLiked}
                       className={isLiked ? 'text-blue-500' : ''}
                     />
-                  </Popconfirm>
+                  </Tooltip>
                   
-                  <Popconfirm
-                    title="Skip this response?"
-                    description="We'll generate a different question for you."
-                    onConfirm={onSkip}
-                    okText="Yes"
-                    cancelText="No"
-                    placement="topRight"
-                    disabled={isSkipping}
+                  <Tooltip
+                    title={<>
+                      Try a different question instead?
+                      <br />
+                      Click here!
+                    </>}
+                    placement="top"
                   >
                     <Button 
                       icon={<StepForwardOutlined />} 
+                      onClick={onSkip}
                       loading={isSkipping}
                       shape="circle"
                     />
-                  </Popconfirm>
+                  </Tooltip>
                 </Space>
               )}
             </>
