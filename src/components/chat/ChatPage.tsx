@@ -36,6 +36,9 @@ const ChatPage: React.FC = () => {
   const [isSkipping, setIsSkipping] = useState(false);
   const [likedMessageIds, setLikedMessageIds] = useState<Set<string>>(new Set());
 
+  // Add new state for transcription loading
+  const [isTranscribing, setIsTranscribing] = useState(false);
+
   useEffect(() => {
     const fetchMessages = async () => {
       try {
@@ -96,6 +99,8 @@ const ChatPage: React.FC = () => {
   const handleSendMessage = async (content: string) => {
     try {
       setIsLoading(true);
+      // Reset the current audio before processing new message
+      setCurrentAudioUrl(undefined);
 
       // Create a new user message
       const userMessage: Message = {
@@ -245,6 +250,9 @@ const ChatPage: React.FC = () => {
   const handleSkip = async () => {
     try {
       setIsSkipping(true);
+      // Reset the current audio before getting new response
+      setCurrentAudioUrl(undefined);
+      
       const response: Message = await apiClient('SKIP', {
         method: 'POST',
       });
@@ -265,9 +273,14 @@ const ChatPage: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full relative">
-      {isLoading && (
+      {(isLoading || isTranscribing) && (
         <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
-          <Spin size="large" />
+          <div className="flex flex-col items-center">
+            <Spin size="large" />
+            <span className="mt-2 text-white">
+              {isTranscribing ? 'Processing your response...' : 'Loading...'}
+            </span>
+          </div>
         </div>
       )}
       
@@ -322,7 +335,8 @@ const ChatPage: React.FC = () => {
       <div className="relative">
         <ChatInput 
           onSendMessage={handleSendMessage} 
-          disabled={isLoading} 
+          disabled={isLoading}
+          setIsTranscribing={setIsTranscribing}
         />
       </div>
     </div>
