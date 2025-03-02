@@ -144,10 +144,10 @@ const ChatPage: React.FC = () => {
         setSessionTopics(response.topics);
         setIsFeedbackModalVisible(true);
       } else {
-        message.error('Failed to prepare session end: ' + response.message);
+        message.error('Failed to end the session: ' + response.message);
       }
     } catch (error) {
-      message.error('Failed to prepare session end: ' + (error as Error).message);
+      message.error('Failed to end the session: ' + (error as Error).message);
     } finally {
       setIsEndingSession(false);
     }
