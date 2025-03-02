@@ -1,12 +1,14 @@
 import React, { useState, useRef, KeyboardEvent, useEffect } from 'react';
 import { transcribeAudio } from '../../utils/api';
+import { Button, Tooltip } from 'antd';
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
   disabled?: boolean;
+  setIsTranscribing: (isTranscribing: boolean) => void;
 }
 
-const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled }) => {
+const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled, setIsTranscribing }) => {
   const [message, setMessage] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -48,6 +50,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled }) => {
         const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm' });
         try {
           setIsProcessing(true);
+          setIsTranscribing(true);
           
           // Create FormData and append audio
           const formData = new FormData();
@@ -67,9 +70,9 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled }) => {
           }, 0);
         } catch (error) {
           console.error('Transcription error:', error);
-          // Handle error (you might want to show a notification to the user)
         } finally {
           setIsProcessing(false);
+          setIsTranscribing(false);
         }
         
         // Stop all tracks
@@ -135,18 +138,42 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled }) => {
 
   return (
     <div className="min-h-chat-input-min max-h-chat-input-max flex items-stretch bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-4 py-2">
-
       {isTypingMode ? (
         <>
-          <textarea
-            ref={textAreaRef}
-            value={message}
-            onChange={handleTextAreaChange}
-            onKeyDown={handleKeyDown}
-            placeholder="Type a message..."
-            className="flex-1 min-h-[48px] max-h-[144px] resize-none rounded-lg border border-gray-300 dark:border-gray-600 p-2 focus:outline-none focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white mx-2 overflow-y-auto"
-            disabled={disabled || isProcessing}
-          />
+          <div className="flex-1 relative mx-2">
+            <textarea
+              ref={textAreaRef}
+              value={message}
+              onChange={handleTextAreaChange}
+              onKeyDown={handleKeyDown}
+              placeholder="Type a message..."
+              className="w-full min-h-[48px] max-h-[144px] pr-10 resize-none rounded-lg border border-gray-300 dark:border-gray-600 p-2 focus:outline-none focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white overflow-y-auto"
+              disabled={disabled || isProcessing}
+            />
+            {message.trim() && (
+              <div className="absolute right-3 bottom-4">
+                <Tooltip title="Press to send message" placement="top">
+                  <Button
+                    onClick={handleSend}
+                    disabled={disabled || isProcessing}
+                    type="text"
+                    className="p-2 rounded-full bg-gray-900 hover:bg-gray-800 transition-colors"
+                    icon={
+                      <svg 
+                        viewBox="0 0 24 24" 
+                        className="w-4 h-4 text-white"
+                      >
+                        <path 
+                          fill="currentColor" 
+                          d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"
+                        />
+                      </svg>
+                    }
+                  />
+                </Tooltip>
+              </div>
+            )}
+          </div>
           <div className="w-1/5 flex items-center justify-center">
             <div className="w-12 h-12 flex items-center justify-center">
               <img 
