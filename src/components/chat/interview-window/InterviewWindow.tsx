@@ -1,7 +1,7 @@
 import React, { useMemo, useRef } from 'react';
 import { Message } from '../../../types/message';
 import { motion } from 'framer-motion';
-import { Button, Space, Popconfirm, Tooltip } from 'antd';
+import { Button, Space, Tooltip } from 'antd';
 import { AudioOutlined, AudioMutedOutlined, LikeOutlined, StepForwardOutlined } from '@ant-design/icons';
 import { WELCOME_MESSAGES } from '../../../constants/messages';
 

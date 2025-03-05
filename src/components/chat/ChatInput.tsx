@@ -6,9 +6,10 @@ interface ChatInputProps {
   onSendMessage: (message: string) => void;
   disabled?: boolean;
   setIsTranscribing: (isTranscribing: boolean) => void;
+  stopAudio: () => void;
 }
 
-const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled, setIsTranscribing }) => {
+const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled, setIsTranscribing, stopAudio }) => {
   const [message, setMessage] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -35,6 +36,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled, setIsTra
 
   const startRecording = async () => {
     try {
+      stopAudio();
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
