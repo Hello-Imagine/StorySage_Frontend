@@ -8,10 +8,12 @@ import { apiClient } from '../../utils/api';
 import { EditableBiographyTitle } from './sections/EditableBiographyTitle';
 import { exportToPDF, exportToMarkdown } from '../../utils/exportUtils';
 import { addOrUpdateEdit, sortSectionsByNumber, findParentSection, isValidPathFormat, findSectionAndParent } from '../../utils/biographyUtils';
+import { useAuthStore } from '../../stores/authStore';
 
 const { Title, Paragraph } = Typography;
 
 const BiographyPage: React.FC = () => {
+  const isBaselineUser = useAuthStore(state => state.isBaselineUser);
   const [biography, setBiography] = useState<Biography | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -562,15 +564,17 @@ const BiographyPage: React.FC = () => {
                     className="flex items-center justify-center"
                   />
                 </Tooltip>
-                <Tooltip title="Edit">
-                  <Button
-                    shape="circle"
-                    variant="dashed"
-                    icon={<EditOutlined />}
-                    onClick={handleEdit}
-                    className="flex items-center justify-center"
-                  />
-                </Tooltip>
+                {!isBaselineUser() && (
+                  <Tooltip title="Edit">
+                    <Button
+                      shape="circle"
+                      variant="dashed"
+                      icon={<EditOutlined />}
+                      onClick={handleEdit}
+                      className="flex items-center justify-center"
+                    />
+                  </Tooltip>
+                )}
               </>
             )}
           </Space>

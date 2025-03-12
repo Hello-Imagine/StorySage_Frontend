@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Button, Space, Tooltip } from 'antd';
 import { AudioOutlined, AudioMutedOutlined, LikeOutlined, StepForwardOutlined } from '@ant-design/icons';
 import { WELCOME_MESSAGES } from '../../../constants/messages';
+import { useAuthStore } from '../../../stores/authStore';
 
 interface InterviewWindowProps {
   latestMessage?: Message;
@@ -27,6 +28,8 @@ const InterviewWindow: React.FC<InterviewWindowProps> = ({
   isLiked
 }) => {
   const audioRef = useRef<HTMLAudioElement>(null);
+  const isBaselineUser = useAuthStore(state => state.isBaselineUser);
+  
   // Pick a random sticker from 1-7 to display
   const randomSticker = useMemo(() => {
     return Math.floor(Math.random() * 7) + 1;
@@ -57,12 +60,14 @@ const InterviewWindow: React.FC<InterviewWindowProps> = ({
           variants={breathingAnimation}
         />
         
-        <div className="w-full bg-white dark:bg-gray-700 rounded-lg shadow-lg p-6 relative">
+        <div className="w-full bg-white dark:bg-gray-700 rounded-lg shadow-lg
+          p-6 relative">
           <Button
             type="text"
             icon={isTranscriptionEnabled ? <AudioOutlined /> : <AudioMutedOutlined />}
             onClick={onToggleTranscription}
-            className="absolute -top-3 -left-3 z-10 bg-white dark:bg-gray-700 shadow-md rounded-full"
+            className="absolute -top-3 -left-3 z-10 bg-white dark:bg-gray-700 
+              shadow-md rounded-full"
           />
           
           {latestMessage ? (
@@ -71,8 +76,10 @@ const InterviewWindow: React.FC<InterviewWindowProps> = ({
                 {latestMessage.content}
               </div>
 
-              {/* Only show buttons if it's not a initial welcome message */}
-              {!latestMessage.content.includes(WELCOME_MESSAGES.INITIAL_INTERVIEW) && (
+              {/* Only show buttons if it's not a initial welcome message 
+              and not a baseline user */}
+              {!latestMessage.content.includes(WELCOME_MESSAGES.INITIAL_INTERVIEW) &&
+               !isBaselineUser() && (
                 <Space className="absolute -bottom-2 right-2">
                   <Tooltip 
                     title={<>
