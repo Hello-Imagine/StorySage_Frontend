@@ -16,7 +16,8 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, isMostRecent = false
           isUser 
             ? 'bg-blue-500 text-white dark:bg-blue-600' 
             : 'bg-gray-100 dark:bg-gray-700 dark:text-white'
-        } ${isMostRecent && !isUser ? 'font-semibold text-lg opacity-100' : 'opacity-90'}`}
+        } ${isMostRecent && !isUser ? 
+          'font-semibold text-lg opacity-100' : 'opacity-90'}`}
       >
         {message.content}
       </div>

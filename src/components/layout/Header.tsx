@@ -39,7 +39,8 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header className="h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4">
+    <header className="h-16 bg-white dark:bg-gray-800 border-b border-gray-200 
+      dark:border-gray-700 flex items-center justify-between px-4">
       <Dropdown menu={{ items, onClick: handleMenuClick }}>
         <Button className="flex items-center gap-2">
           View Data <DownOutlined />

@@ -193,7 +193,8 @@ const BiographyPage: React.FC = () => {
 
     // Sort the parent's sections
     const sortedParent = sortSectionsByNumber(updatedParent);
-    const updateParentSections = (sections: Record<string, Section>): Record<string, Section> => {
+    const updateParentSections = (sections: Record<string, Section>): 
+    Record<string, Section> => {
       const newSections = { ...sections };
       
       for (const [key, section] of Object.entries(sections)) {
@@ -284,7 +285,10 @@ const BiographyPage: React.FC = () => {
       isNew: true
     };
 
-    const { parent: parentSection, path: parentPath } = findParentSection(editedBiography.subsections, sectionNumber);
+    const { parent: parentSection, path: parentPath } = findParentSection(
+      editedBiography.subsections, 
+      sectionNumber
+    );
     const parentTitle = parentSection ? parentSection.title : "";
     
     // Calculate new path
@@ -301,7 +305,8 @@ const BiographyPage: React.FC = () => {
       });
     } else {
       // Add to parent section
-      const updateSubsections = (sections: Record<string, Section>): Record<string, Section> => {
+      const updateSubsections = (sections: Record<string, Section>): 
+      Record<string, Section> => {
         const newSections = { ...sections };
         
         // Check if current level contains the parent section
@@ -350,7 +355,8 @@ const BiographyPage: React.FC = () => {
   const handleDeleteSection = (section: Section) => {
     if (!editedBiography) return;
 
-    const deleteSection = (sections: Record<string, Section>, targetId: string): Record<string, Section> => {
+    const deleteSection = (sections: Record<string, Section>, targetId: string): 
+    Record<string, Section> => {
       const newSections = { ...sections };
       
       for (const [key, section] of Object.entries(newSections)) {
@@ -412,7 +418,8 @@ const BiographyPage: React.FC = () => {
   const handleContentChange = (section: Section, newContent: string) => {
     if (!editedBiography) return;
 
-    const updateSectionContent = (sections: Record<string, Section>, id: string): Record<string, Section> => {
+    const updateSectionContent = (sections: Record<string, Section>, id: string): 
+    Record<string, Section> => {
       const newSections = { ...sections };
       
       for (const key in newSections) {
@@ -501,7 +508,8 @@ const BiographyPage: React.FC = () => {
   return (
     <div className="h-full overflow-auto bg-gray-50 dark:bg-gray-900">
       {/* Toolbar */}
-      <div className="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+      <div className="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b 
+        border-gray-200 dark:border-gray-700 shadow-sm">
         <div className="max-w-4xl mx-auto px-6 py-2">
           <Space>
             {editMode ? (
@@ -588,7 +596,8 @@ const BiographyPage: React.FC = () => {
               {biography!.title}
             </Title>
             {biography!.content && (
-              <Paragraph className="text-gray-700 dark:text-gray-300 text-base whitespace-pre-line mb-8">
+              <Paragraph className="text-gray-700 dark:text-gray-300 
+                text-base whitespace-pre-line mb-8">
                 {biography!.content}
               </Paragraph>
             )}

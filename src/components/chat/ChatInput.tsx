@@ -157,7 +157,8 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled, setIsTra
                     onClick={handleSend}
                     disabled={disabled || isProcessing}
                     type="text"
-                    className="p-2 rounded-full bg-gray-900 hover:bg-gray-800 transition-colors"
+                    className="p-2 rounded-full bg-gray-900 
+                      hover:bg-gray-800 transition-colors"
                     icon={
                       <svg 
                         viewBox="0 0 24 24" 

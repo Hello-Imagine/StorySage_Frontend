@@ -74,7 +74,8 @@ const TopicSelectionModal: React.FC<TopicSelectionModalProps> = ({
   return (
     <Modal
       title={
-        <div className="text-center font-serif text-2xl text-blue-600 dark:text-blue-400">
+        <div className="text-center font-serif text-2xl 
+          text-blue-600 dark:text-blue-400">
           Thank You for Sharing Your Story!
         </div>
       }
@@ -204,7 +205,8 @@ const TopicSelectionModal: React.FC<TopicSelectionModalProps> = ({
                   type="dashed"
                   className="mt-2 w-full"
                 >
-                  {customTopics.length === 0 ? 'Add Your Own Topic' : 'Add Another Topic'}
+                  {customTopics.length === 0 ? 
+                  'Add Your Own Topic' : 'Add Another Topic'}
                 </Button>
               </motion.div>
             </div>

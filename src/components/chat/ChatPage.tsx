@@ -30,7 +30,8 @@ const ChatPage: React.FC = () => {
   const [sessionTopics, setSessionTopics] = useState<string[]>([]);
   const [isEndingSession, setIsEndingSession] = useState(false);
   const [isFeedbackModalVisible, setIsFeedbackModalVisible] = useState(false);
-  const [sessionFeedback, setSessionFeedback] = useState<{ rating: number; feedback: string } | null>(null);
+  const [sessionFeedback, setSessionFeedback] = 
+    useState<{ rating: number; feedback: string } | null>(null);
   
   // Like and skip actions
   const [isSkipping, setIsSkipping] = useState(false);
@@ -95,7 +96,7 @@ const ChatPage: React.FC = () => {
     }
   }, []);
 
-  // When a new message is sent, we send it to the server and add it to the messages array
+  // When a new message is sent, we send it to the server
   const handleSendMessage = async (content: string) => {
     try {
       setIsLoading(true);
@@ -205,7 +206,8 @@ const ChatPage: React.FC = () => {
       // Check if it's a timeout error (status code 408)
       if (error instanceof Error && 'status' in error && error.status === 408) {
         message.info({ 
-          content: 'Your biography is being generated and it may take a few minutes. You can check back later in the biography section.',
+          content: 'Your biography is being generated and it may take a few minutes. ' +
+          'You can check back later in the biography section.',
           key: 'bioUpdate',
           duration: 5
         });
@@ -274,7 +276,8 @@ const ChatPage: React.FC = () => {
   return (
     <div className="flex flex-col h-full relative">
       {(isLoading || isTranscribing) && (
-        <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/20 flex items-center 
+          justify-center z-50">
           <div className="flex flex-col items-center">
             <Spin size="large" />
             <span className="mt-2 text-white">
@@ -323,7 +326,8 @@ const ChatPage: React.FC = () => {
           onLike={handleLike}
           onSkip={handleSkip}
           isSkipping={isSkipping}
-          isLiked={!!getMostRecentInterviewerMessage()?.id && likedMessageIds.has(getMostRecentInterviewerMessage()!.id)}
+          isLiked={!!getMostRecentInterviewerMessage()?.id && 
+            likedMessageIds.has(getMostRecentInterviewerMessage()!.id)}
         />
       ) : (
         <MessageWindow 

@@ -46,7 +46,9 @@ export const EditableBiographyTitle: React.FC<EditableBiographyTitleProps> = ({
           disabled={!isEditing}
           className={`
             text-center text-2xl font-bold text-blue-900 dark:text-blue-200
-            ${!isEditing ? 'bg-transparent border-transparent hover:bg-gray-50 dark:hover:bg-gray-800' : ''}
+            ${!isEditing ? 
+              'bg-transparent border-transparent hover:bg-gray-50 '
+              + 'dark:hover:bg-gray-800' : ''}
           `}
         />
         <Space>

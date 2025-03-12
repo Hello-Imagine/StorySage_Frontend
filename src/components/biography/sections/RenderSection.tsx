@@ -19,7 +19,8 @@ export const RenderSection: React.FC<RenderSectionProps> = ({ section, level }) 
         {section.title}
       </Title>
       {section.content && (
-        <Paragraph className="text-gray-700 dark:text-gray-300 text-base whitespace-pre-line">
+        <Paragraph className="text-gray-700 dark:text-gray-300 
+          text-base whitespace-pre-line">
           {formatContent(section.content)}
         </Paragraph>
       )}
