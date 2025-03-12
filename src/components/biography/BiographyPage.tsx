@@ -98,7 +98,9 @@ const BiographyPage: React.FC = () => {
 
         if (duplicates.length > 0) {
           const duplicateNumbers = duplicates.map(d => d.title.split(' ')[0]).join(', ');
-          message.error(`Sections with numbers ${duplicateNumbers} already exist. Please use different numbers.`);
+          message.error(
+            `Sections with numbers ${duplicateNumbers} already exist. ` +
+            `Please use different numbers.`);
           return;
         }
       }
@@ -148,7 +150,11 @@ const BiographyPage: React.FC = () => {
     setEdits([]);
   };
 
-  const handleBiographyTitleChange = (sectionId: string, oldTitle: string, newTitle: string) => {
+  const handleBiographyTitleChange = (
+    sectionId: string, 
+    oldTitle: string, 
+    newTitle: string
+  ) => {
     if (!editedBiography) return;
     
     setEditedBiography({
@@ -171,7 +177,9 @@ const BiographyPage: React.FC = () => {
     // Validate the new section number format
     const newSectionNumber = newTitle.split(' ')[0];
     if (!isValidPathFormat(newSectionNumber)) {
-      message.error('Invalid section format. Please use a number or dot-separated numbers (1 or 1.2) followed by a SPACE and your title');
+      message.error('Invalid section format. ' +
+        'Please use a number or dot-separated numbers (1 or 1.2) ' +
+        'followed by a SPACE and your title');
       return;
     }
 
@@ -271,7 +279,9 @@ const BiographyPage: React.FC = () => {
     }
   };
 
-  const handleAddSection = (sectionNumber: string, title: string, sectionPrompt: string) => {
+  const handleAddSection = (
+    sectionNumber: string, title: string, sectionPrompt: string
+  ) => {
     if (!editedBiography) return;
 
     const fullTitle = `${sectionNumber} ${title}`;
@@ -497,7 +507,8 @@ const BiographyPage: React.FC = () => {
         <Empty
           description={
             <span className="text-gray-500 dark:text-gray-400">
-              Sorry, you did not have a biography yet 😥. Please continue chatting with your AI to create one.
+              Sorry, you did not have a biography yet 😥. 
+              Please continue chatting with your AI to create one.
             </span>
           }
         />

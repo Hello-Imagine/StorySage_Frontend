@@ -50,7 +50,8 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
+    <div className="min-h-screen flex items-center justify-center 
+      bg-gray-50 dark:bg-gray-900 px-4">
       <Card className="w-full max-w-md dark:bg-gray-800">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold dark:text-white">Welcome Back!</h1>
@@ -104,7 +105,8 @@ const Login: React.FC = () => {
           {/* TODO: uncomment this when register is implemented */}
           <div className="text-center">
             <span className="dark:text-gray-400">Don't have an account? </span>
-            <Link to="/register" className="text-blue-600 hover:text-blue-700 dark:text-blue-400">
+            <Link to="/register" className="text-blue-600 hover:text-blue-700 
+              dark:text-blue-400">
               Register now
             </Link>
           </div>

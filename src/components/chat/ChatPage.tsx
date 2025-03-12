@@ -40,6 +40,26 @@ const ChatPage: React.FC = () => {
   // Add new state for transcription loading
   const [isTranscribing, setIsTranscribing] = useState(false);
 
+  // Fetch audio for a message
+  const fetchAudio = useCallback(async (messageContent: string) => {
+    try {
+      const response = await apiClient('TEXT_TO_SPEECH', {
+        method: 'POST',
+        body: JSON.stringify({
+          text: messageContent,
+        }),
+      });
+      
+      if (response.audioUrl) {
+        setCurrentAudioUrl(response.audioUrl);
+      } else {
+        throw new Error('No audio URL received');
+      }
+    } catch (error) {
+      message.error('Failed to fetch audio: ' + (error as Error).message);
+    }
+  }, []);
+
   useEffect(() => {
     const fetchMessages = async () => {
       try {
@@ -68,33 +88,16 @@ const ChatPage: React.FC = () => {
           };
           setMessages(prev => [...prev, welcomeMessage]);
           setHistoricalMessagesCount(prev => prev + 1);
+          if (isTranscriptionEnabled) {
+            fetchAudio(WELCOME_MESSAGES.INITIAL_INTERVIEW);
+          }
         }
       } catch (error) {
         message.error('Failed to fetch messages: ' + (error as Error).message);
       }
     };
     fetchMessages();
-  }, [isInterviewMode]);
-
-  // Fetch audio for a message
-  const fetchAudio = useCallback(async (messageContent: string) => {
-    try {
-      const response = await apiClient('TEXT_TO_SPEECH', {
-        method: 'POST',
-        body: JSON.stringify({
-          text: messageContent,
-        }),
-      });
-      
-      if (response.audioUrl) {
-        setCurrentAudioUrl(response.audioUrl);
-      } else {
-        throw new Error('No audio URL received');
-      }
-    } catch (error) {
-      message.error('Failed to fetch audio: ' + (error as Error).message);
-    }
-  }, []);
+  }, [isInterviewMode, isTranscriptionEnabled]);
 
   // When a new message is sent, we send it to the server
   const handleSendMessage = async (content: string) => {
@@ -142,6 +145,9 @@ const ChatPage: React.FC = () => {
   const handlePrepareEndSession = async () => {
     try {
       setIsEndingSession(true);
+      // Stop any current audio playback
+      setCurrentAudioUrl(undefined);
+      
       const response = await apiClient('PREPARE_END_SESSION', {
         method: 'POST',
       });
@@ -273,6 +279,11 @@ const ChatPage: React.FC = () => {
     }
   };
 
+  // Add stopAudio function
+  const stopAudio = useCallback(() => {
+    setCurrentAudioUrl(undefined);
+  }, []);
+
   return (
     <div className="flex flex-col h-full relative">
       {(isLoading || isTranscribing) && (
@@ -341,6 +352,7 @@ const ChatPage: React.FC = () => {
           onSendMessage={handleSendMessage} 
           disabled={isLoading}
           setIsTranscribing={setIsTranscribing}
+          stopAudio={stopAudio}
         />
       </div>
     </div>

@@ -101,7 +101,9 @@ export const exportToPDF = (biography: Biography) => {
       doc.setFont('times', item.isTitle ? 'bold' : 'normal');
 
       const lines = doc.splitTextToSize(item.text, config.maxWidth);
-      const spacing = item.isTitle ? formatConfig.title.spacing : formatConfig.content.spacing;
+      const spacing = item.isTitle ? 
+        formatConfig.title.spacing : 
+        formatConfig.content.spacing;
 
       lines.forEach((line: string, index: number) => {
         if (y > config.maxY) {

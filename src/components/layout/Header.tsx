@@ -16,11 +16,7 @@ const Header: React.FC = () => {
     {
       key: 'history',
       label: 'Conversation History',
-    },
-    // {
-    //   key: 'logs',
-    //   label: 'Execution Logs',
-    // },
+    }
   ];
 
   const handleMenuClick: MenuProps['onClick'] = (e) => {

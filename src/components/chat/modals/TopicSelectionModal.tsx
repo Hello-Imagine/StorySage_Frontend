@@ -112,10 +112,12 @@ const TopicSelectionModal: React.FC<TopicSelectionModalProps> = ({
           className="text-center space-y-3"
         >
           <p className="text-lg text-gray-700 dark:text-gray-300 font-medium">
-            We've had such a wonderful conversation! <HeartTwoTone twoToneColor="#ff69b4" />
+            We've had such a wonderful conversation! 
+            <HeartTwoTone twoToneColor="#ff69b4" />
           </p>
           <p className="text-base text-gray-600 dark:text-gray-400">
-            To make your next session even more meaningful, would you like to explore any of these topics further?
+            To make your next session even more meaningful, 
+            would you like to explore any of these topics further?
           </p>
         </motion.div>
 
@@ -139,9 +141,11 @@ const TopicSelectionModal: React.FC<TopicSelectionModalProps> = ({
                   >
                     <Checkbox 
                       value={topic}
-                      className="w-full p-3 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                      className="w-full p-3 hover:bg-gray-50 dark:hover:bg-gray-800 
+                        rounded-lg transition-colors"
                     >
-                      <span className="text-base font-medium text-gray-700 dark:text-gray-300">
+                      <span className="text-base font-medium text-gray-700 
+                        dark:text-gray-300">
                         {topic}
                       </span>
                     </Checkbox>
