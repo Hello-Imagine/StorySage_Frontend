@@ -2,7 +2,7 @@ import React, { useMemo, useRef } from 'react';
 import { Message } from '../../../types/message';
 import { motion } from 'framer-motion';
 import { Button, Space, Tooltip } from 'antd';
-import { AudioOutlined, AudioMutedOutlined, LikeOutlined, StepForwardOutlined } from '@ant-design/icons';
+import { AudioOutlined, AudioMutedOutlined, LikeOutlined, DislikeOutlined } from '@ant-design/icons';
 import { WELCOME_MESSAGES } from '../../../constants/messages';
 import { useAuthStore } from '../../../stores/authStore';
 
@@ -100,14 +100,14 @@ const InterviewWindow: React.FC<InterviewWindowProps> = ({
                   
                   <Tooltip
                     title={<>
-                      Try a different question instead?
+                      Don't like this question?
                       <br />
-                      Click here!
+                      Skip it and try a different one!
                     </>}
                     placement="top"
                   >
                     <Button 
-                      icon={<StepForwardOutlined />} 
+                      icon={<DislikeOutlined />} 
                       onClick={onSkip}
                       loading={isSkipping}
                       shape="circle"

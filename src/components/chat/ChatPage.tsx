@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { message, Spin, notification, Popconfirm } from 'antd';
-import { SmileOutlined } from '@ant-design/icons';
+import { SmileOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import MessageWindow from './message-window/MessageWindow';
 import InterviewWindow from './interview-window/InterviewWindow';
 import ChatInput from './ChatInput';
@@ -73,27 +73,47 @@ const ChatPage: React.FC = () => {
         setMessages(data.messages);
         setHistoricalMessagesCount(data.messages.length);
 
-        if (data.has_active_session) {
-          notification.success({
-            message: 'Welcome Back!',
-            description: WELCOME_MESSAGES.WELCOME_BACK,
-            icon: <SmileOutlined style={{ color: '#108ee9' }} />,
-            placement: 'topRight',
-            duration: 3,
-          });
-        } else {
-          // Add a welcome message from the interviewer if there's no active session
-          const welcomeMessage: Message = {
-            id: Date.now().toString(),
-            content: WELCOME_MESSAGES.INITIAL_INTERVIEW,
-            created_at: new Date().toISOString(),
-            role: 'Interviewer'
-          };
-          setMessages(prev => [...prev, welcomeMessage]);
-          setHistoricalMessagesCount(prev => prev + 1);
-          if (isTranscriptionEnabled) {
-            fetchAudio(WELCOME_MESSAGES.INITIAL_INTERVIEW);
+        // Handle different session statuses
+        switch (data.session_status) {
+          case 'active':
+            notification.success({
+              message: 'Welcome Back!',
+              description: WELCOME_MESSAGES.WELCOME_BACK,
+              icon: <SmileOutlined style={{ color: '#108ee9' }} />,
+              placement: 'topRight',
+              duration: 3,
+            });
+            break;
+          
+          case 'inactive': {
+            // Add a welcome message from the interviewer if there's no active session
+            const welcomeMessage: Message = {
+              id: Date.now().toString(),
+              content: WELCOME_MESSAGES.INITIAL_INTERVIEW,
+              created_at: new Date().toISOString(),
+              role: 'Interviewer'
+            };
+            setMessages(prev => [...prev, welcomeMessage]);
+            setHistoricalMessagesCount(prev => prev + 1);
+            if (isTranscriptionEnabled) {
+              fetchAudio(WELCOME_MESSAGES.INITIAL_INTERVIEW);
+            }
+            break;
           }
+          
+          case 'ending':
+            setIsLoading(true);
+            notification.info({
+              message: 'Session Ending in Progress',
+              description: WELCOME_MESSAGES.ENDING_IN_PROGRESS,
+              icon: <InfoCircleOutlined style={{ color: '#1890ff' }} />,
+              placement: 'topRight',
+              duration: 5,
+            });
+            break;
+          
+          default:
+            console.warn(`Unknown session status: ${data.session_status}`);
         }
       } catch (error) {
         message.error('Failed to fetch messages: ' + (error as Error).message);
@@ -169,7 +189,7 @@ const ChatPage: React.FC = () => {
       // For baseline users, skip feedback and topic selection
       else {
         message.loading({ 
-          content: '📝 Writing the biography. 😃 DON\'T QUIT', 
+          content: '📝 Writing the biography... 😃 DON\'T QUIT', 
           key: 'bioUpdate',
           duration: 0
         });
