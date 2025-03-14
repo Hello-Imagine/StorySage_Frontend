@@ -23,8 +23,9 @@ const ChatPage: React.FC = () => {
   const [historicalMessagesCount, setHistoricalMessagesCount] = useState(0);
   
   // Transcription
-  // debugging
-  const [isTranscriptionEnabled, setIsTranscriptionEnabled] = useState(false);
+  const [isTranscriptionEnabled, setIsTranscriptionEnabled] = useState(
+    process.env.NODE_ENV === 'production'
+  );
   const [currentAudioUrl, setCurrentAudioUrl] = useState<string>();
 
   // End session

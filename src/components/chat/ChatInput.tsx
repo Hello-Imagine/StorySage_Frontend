@@ -1,6 +1,6 @@
 import React, { useState, useRef, KeyboardEvent, useEffect } from 'react';
 import { transcribeAudio } from '../../utils/api';
-import { Button, Tooltip } from 'antd';
+import { Button, Tooltip, notification } from 'antd';
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
@@ -38,9 +38,17 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled, setIsTra
     try {
       stopAudio();
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: 'audio/webm',
+      });
       mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = [];
+
+      // Add recording time tracking
+      let recordingDuration = 0;
+      const recordingInterval = setInterval(() => {
+        recordingDuration += 1;
+      }, 1000);
 
       mediaRecorder.ondataavailable = (e) => {
         if (e.data.size > 0) {
@@ -49,7 +57,9 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled, setIsTra
       };
 
       mediaRecorder.onstop = async () => {
+        clearInterval(recordingInterval);
         const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm' });
+        
         try {
           setIsProcessing(true);
           setIsTranscribing(true);
@@ -58,6 +68,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled, setIsTra
           const formData = new FormData();
           formData.append('audio', audioBlob, 'audio.webm');
           
+          // Add timing information
           const transcription = await transcribeAudio(formData);
           
           // Add transcription to message
@@ -71,7 +82,9 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled, setIsTra
             }
           }, 0);
         } catch (error) {
-          console.error('Transcription error:', error);
+          // Show error to user
+          alert(`Transcription failed: ${error instanceof Error ? 
+                error.message : 'Unknown error'}`);
         } finally {
           setIsProcessing(false);
           setIsTranscribing(false);
@@ -81,11 +94,28 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled, setIsTra
         stream.getTracks().forEach(track => track.stop());
       };
 
-      mediaRecorder.start();
+      // Set a time limit for recording to prevent extremely large files
+      const MAX_RECORDING_TIME = 120 * 1000; // 120 seconds
+      mediaRecorder.start(1000); // Collect data in 1-second chunks
       setIsRecording(true);
+      
+      // Automatically stop recording after MAX_RECORDING_TIME
+      setTimeout(() => {
+        if (isRecording && mediaRecorderRef.current) {
+          stopRecording();
+          // Show notification that recording was stopped due to time limit
+          notification.info({
+            message: "Recording Stopped",
+            description: "Recording automatically stopped after 2 minutes."
+                        + " The audio is being processed.",
+            duration: 5,
+          });
+        }
+      }, MAX_RECORDING_TIME);
+      
     } catch (error) {
       console.error('Error starting recording:', error);
-      // Handle error (you might want to show a notification to the user)
+      alert('Could not access microphone. Please check your browser permissions.');
     }
   };
 
