@@ -71,7 +71,7 @@ const ChatPage: React.FC = () => {
         });
 
         setMessages(data.messages);
-        setHistoricalMessagesCount(data.messages.length);
+        setHistoricalMessagesCount(data.messages.length - 1);
 
         // Handle different session statuses
         switch (data.session_status) {
