@@ -67,10 +67,10 @@ const ChatPage: React.FC = () => {
 
   // Stop audio when recording
   useEffect(() => {
-    if (isRecording) {
+    if (isRecording || isLoading || !isTranscriptionEnabled) {
       setCurrentAudioUrl(undefined);
     }
-  }, [isRecording, currentAudioUrl]);
+  }, [isRecording, isLoading, isTranscriptionEnabled, currentAudioUrl]);
 
   // Fetch messages
   useEffect(() => {
@@ -153,8 +153,6 @@ const ChatPage: React.FC = () => {
   const handleSendMessage = async (content: string) => {
     try {
       setIsLoading(true);
-      // Reset the current audio before processing new message
-      setCurrentAudioUrl(undefined);
 
       // Create a new user message
       const userMessage: Message = {
@@ -325,10 +323,6 @@ const ChatPage: React.FC = () => {
 
   const handleToggleTranscription = () => {
     setIsTranscriptionEnabled(prev => !prev);
-    // Clear current audio when toggling off
-    if (isTranscriptionEnabled) {
-      setCurrentAudioUrl(undefined);
-    }
   };
 
   const handleLike = async () => {
@@ -364,11 +358,6 @@ const ChatPage: React.FC = () => {
       setIsSkipping(false);
     }
   };
-
-  // Add stopAudio function
-  const stopAudio = useCallback(() => {
-    setCurrentAudioUrl(undefined);
-  }, []);
 
   return (
     <div className="flex flex-col h-full relative">
@@ -438,7 +427,6 @@ const ChatPage: React.FC = () => {
           onSendMessage={handleSendMessage} 
           disabled={isLoading}
           setIsTranscribing={setIsTranscribing}
-          stopAudio={stopAudio}
           onRecordingStateChange={setIsRecording}
         />
       </div>
