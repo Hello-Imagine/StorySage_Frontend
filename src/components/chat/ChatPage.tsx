@@ -26,7 +26,11 @@ const ChatPage: React.FC = () => {
   const [isTranscriptionEnabled, setIsTranscriptionEnabled] = useState(
     process.env.NODE_ENV === 'production'
   );
+  const [isTranscribing, setIsTranscribing] = useState(false);
   const [currentAudioUrl, setCurrentAudioUrl] = useState<string>();
+
+  // User recording
+  const [isRecording, setIsRecording] = useState(false);
 
   // End session
   const [isTopicModalVisible, setIsTopicModalVisible] = useState(false);
@@ -40,11 +44,8 @@ const ChatPage: React.FC = () => {
   const [isSkipping, setIsSkipping] = useState(false);
   const [likedMessageIds, setLikedMessageIds] = useState<Set<string>>(new Set());
 
-  // Add new state for transcription loading
-  const [isTranscribing, setIsTranscribing] = useState(false);
-
-  // Fetch audio for a message
-  const fetchAudio = useCallback(async (messageContent: string) => {
+  // Modify fetchAudio to return the URL
+  const fetchAudio = useCallback(async (messageContent: string): Promise<string | null> => {
     try {
       const response = await apiClient('TEXT_TO_SPEECH', {
         method: 'POST',
@@ -54,15 +55,24 @@ const ChatPage: React.FC = () => {
       });
       
       if (response.audioUrl) {
-        setCurrentAudioUrl(response.audioUrl);
+        return response.audioUrl;
       } else {
         throw new Error('No audio URL received');
       }
     } catch (error) {
       message.error('Failed to fetch audio: ' + (error as Error).message);
+      return null;
     }
   }, []);
 
+  // Stop audio when recording
+  useEffect(() => {
+    if (isRecording) {
+      setCurrentAudioUrl(undefined);
+    }
+  }, [isRecording, currentAudioUrl]);
+
+  // Fetch messages
   useEffect(() => {
     const fetchMessages = async () => {
       try {
@@ -95,9 +105,6 @@ const ChatPage: React.FC = () => {
             };
             setMessages(prev => [...prev, welcomeMessage]);
             setHistoricalMessagesCount(prev => prev + 1);
-            if (isTranscriptionEnabled) {
-              fetchAudio(WELCOME_MESSAGES.INITIAL_INTERVIEW);
-            }
             break;
           }
           
@@ -120,9 +127,29 @@ const ChatPage: React.FC = () => {
       }
     };
     fetchMessages();
-  }, [isInterviewMode, isTranscriptionEnabled, fetchAudio]);
+  }, [isInterviewMode]);
 
-  // When a new message is sent, we send it to the server
+  // Fetch audio for latest message
+  useEffect(() => {
+    const fetchAudioForLatestMessage = async () => {
+      const latestMessage = messages[messages.length - 1];
+      
+      if (
+        latestMessage &&
+        latestMessage.role === 'Interviewer' &&
+        isTranscriptionEnabled
+      ) {
+        const audioUrl = await fetchAudio(latestMessage.content);
+        if (audioUrl) {
+          setCurrentAudioUrl(audioUrl);
+        }
+      }
+    };
+
+    fetchAudioForLatestMessage();
+  }, [messages, isTranscriptionEnabled, fetchAudio]);
+
+  // Modify handleSendMessage to remove manual audio fetching
   const handleSendMessage = async (content: string) => {
     try {
       setIsLoading(true);
@@ -153,11 +180,6 @@ const ChatPage: React.FC = () => {
 
       // Add the server's response to the messages
       setMessages(prev => [...prev, response]);
-
-      // If transcription is enabled, fetch audio for the interviewer's response
-      if (isTranscriptionEnabled && response.role === 'Interviewer') {
-        await fetchAudio(response.content);
-      }
     } catch (error) {
       message.error('Failed to send message: ' + (error as Error).message);
     } finally {
@@ -336,11 +358,6 @@ const ChatPage: React.FC = () => {
 
       // Add the interviewer's response to messages
       setMessages(prev => [...prev, response]);
-
-      // If transcription is enabled, fetch audio for the new response
-      if (isTranscriptionEnabled && response.role === 'Interviewer') {
-        await fetchAudio(response.content);
-      }
     } catch (error) {
       message.error('Failed to skip: ' + (error as Error).message);
     } finally {
@@ -422,6 +439,7 @@ const ChatPage: React.FC = () => {
           disabled={isLoading}
           setIsTranscribing={setIsTranscribing}
           stopAudio={stopAudio}
+          onRecordingStateChange={setIsRecording}
         />
       </div>
     </div>

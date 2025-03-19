@@ -7,9 +7,10 @@ interface ChatInputProps {
   disabled?: boolean;
   setIsTranscribing: (isTranscribing: boolean) => void;
   stopAudio: () => void;
+  onRecordingStateChange: (isRecording: boolean) => void;
 }
 
-const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled, setIsTranscribing, stopAudio }) => {
+const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled, setIsTranscribing, stopAudio, onRecordingStateChange }) => {
   const [message, setMessage] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -44,6 +45,10 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled, setIsTra
       mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = [];
 
+      // Notify parent when recording starts
+      setIsRecording(true);
+      onRecordingStateChange(true);
+
       // Add recording time tracking
       let recordingDuration = 0;
       const recordingInterval = setInterval(() => {
@@ -57,6 +62,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled, setIsTra
       };
 
       mediaRecorder.onstop = async () => {
+        console.log("recordingDuration", recordingDuration);
         clearInterval(recordingInterval);
         const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm' });
         
@@ -97,7 +103,6 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled, setIsTra
       // Set a time limit for recording to prevent extremely large files
       const MAX_RECORDING_TIME = 120 * 1000; // 120 seconds
       mediaRecorder.start(1000); // Collect data in 1-second chunks
-      setIsRecording(true);
       
       // Automatically stop recording after MAX_RECORDING_TIME
       setTimeout(() => {
@@ -123,6 +128,8 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled, setIsTra
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
+      // Notify parent when recording stops
+      onRecordingStateChange(false);
     }
   };
 
