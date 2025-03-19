@@ -49,7 +49,8 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
           className="w-32 h-32 mb-4"
         />
         <p className="text-gray-600 text-center">
-          Thank you for using our application! Your feedback helps us improve and provide a better experience.
+          Thank you for using our application! 
+          Your feedback helps us improve and provide a better experience.
         </p>
       </div>
 

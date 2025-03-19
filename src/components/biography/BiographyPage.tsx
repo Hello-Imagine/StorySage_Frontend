@@ -8,10 +8,12 @@ import { apiClient } from '../../utils/api';
 import { EditableBiographyTitle } from './sections/EditableBiographyTitle';
 import { exportToPDF, exportToMarkdown } from '../../utils/exportUtils';
 import { addOrUpdateEdit, sortSectionsByNumber, findParentSection, isValidPathFormat, findSectionAndParent } from '../../utils/biographyUtils';
+import { useAuthStore } from '../../stores/authStore';
 
 const { Title, Paragraph } = Typography;
 
 const BiographyPage: React.FC = () => {
+  const isBaselineUser = useAuthStore(state => state.isBaselineUser);
   const [biography, setBiography] = useState<Biography | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -98,7 +100,9 @@ const BiographyPage: React.FC = () => {
 
         if (duplicates.length > 0) {
           const duplicateNumbers = duplicates.map(d => d.title.split(' ')[0]).join(', ');
-          message.error(`Sections with numbers ${duplicateNumbers} already exist. Please use different numbers.`);
+          message.error(
+            `Sections with numbers ${duplicateNumbers} already exist. ` +
+            `Please use different numbers.`);
           return;
         }
       }
@@ -148,7 +152,11 @@ const BiographyPage: React.FC = () => {
     setEdits([]);
   };
 
-  const handleBiographyTitleChange = (sectionId: string, oldTitle: string, newTitle: string) => {
+  const handleBiographyTitleChange = (
+    sectionId: string, 
+    oldTitle: string, 
+    newTitle: string
+  ) => {
     if (!editedBiography) return;
     
     setEditedBiography({
@@ -171,7 +179,9 @@ const BiographyPage: React.FC = () => {
     // Validate the new section number format
     const newSectionNumber = newTitle.split(' ')[0];
     if (!isValidPathFormat(newSectionNumber)) {
-      message.error('Invalid section format. Please use a number or dot-separated numbers (1 or 1.2) followed by a SPACE and your title');
+      message.error('Invalid section format. ' +
+        'Please use a number or dot-separated numbers (1 or 1.2) ' +
+        'followed by a SPACE and your title');
       return;
     }
 
@@ -193,7 +203,8 @@ const BiographyPage: React.FC = () => {
 
     // Sort the parent's sections
     const sortedParent = sortSectionsByNumber(updatedParent);
-    const updateParentSections = (sections: Record<string, Section>): Record<string, Section> => {
+    const updateParentSections = (sections: Record<string, Section>): 
+    Record<string, Section> => {
       const newSections = { ...sections };
       
       for (const [key, section] of Object.entries(sections)) {
@@ -270,7 +281,9 @@ const BiographyPage: React.FC = () => {
     }
   };
 
-  const handleAddSection = (sectionNumber: string, title: string, sectionPrompt: string) => {
+  const handleAddSection = (
+    sectionNumber: string, title: string, sectionPrompt: string
+  ) => {
     if (!editedBiography) return;
 
     const fullTitle = `${sectionNumber} ${title}`;
@@ -284,7 +297,10 @@ const BiographyPage: React.FC = () => {
       isNew: true
     };
 
-    const { parent: parentSection, path: parentPath } = findParentSection(editedBiography.subsections, sectionNumber);
+    const { parent: parentSection, path: parentPath } = findParentSection(
+      editedBiography.subsections, 
+      sectionNumber
+    );
     const parentTitle = parentSection ? parentSection.title : "";
     
     // Calculate new path
@@ -301,7 +317,8 @@ const BiographyPage: React.FC = () => {
       });
     } else {
       // Add to parent section
-      const updateSubsections = (sections: Record<string, Section>): Record<string, Section> => {
+      const updateSubsections = (sections: Record<string, Section>): 
+      Record<string, Section> => {
         const newSections = { ...sections };
         
         // Check if current level contains the parent section
@@ -350,7 +367,8 @@ const BiographyPage: React.FC = () => {
   const handleDeleteSection = (section: Section) => {
     if (!editedBiography) return;
 
-    const deleteSection = (sections: Record<string, Section>, targetId: string): Record<string, Section> => {
+    const deleteSection = (sections: Record<string, Section>, targetId: string): 
+    Record<string, Section> => {
       const newSections = { ...sections };
       
       for (const [key, section] of Object.entries(newSections)) {
@@ -412,7 +430,8 @@ const BiographyPage: React.FC = () => {
   const handleContentChange = (section: Section, newContent: string) => {
     if (!editedBiography) return;
 
-    const updateSectionContent = (sections: Record<string, Section>, id: string): Record<string, Section> => {
+    const updateSectionContent = (sections: Record<string, Section>, id: string): 
+    Record<string, Section> => {
       const newSections = { ...sections };
       
       for (const key in newSections) {
@@ -490,7 +509,8 @@ const BiographyPage: React.FC = () => {
         <Empty
           description={
             <span className="text-gray-500 dark:text-gray-400">
-              Sorry, you did not have a biography yet 😥. Please continue chatting with your AI to create one.
+              Sorry, you did not have a biography yet 😥. 
+              Please continue chatting with your AI to create one.
             </span>
           }
         />
@@ -501,7 +521,8 @@ const BiographyPage: React.FC = () => {
   return (
     <div className="h-full overflow-auto bg-gray-50 dark:bg-gray-900">
       {/* Toolbar */}
-      <div className="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+      <div className="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b 
+        border-gray-200 dark:border-gray-700 shadow-sm">
         <div className="max-w-4xl mx-auto px-6 py-2">
           <Space>
             {editMode ? (
@@ -543,15 +564,17 @@ const BiographyPage: React.FC = () => {
                     className="flex items-center justify-center"
                   />
                 </Tooltip>
-                <Tooltip title="Edit">
-                  <Button
-                    shape="circle"
-                    variant="dashed"
-                    icon={<EditOutlined />}
-                    onClick={handleEdit}
-                    className="flex items-center justify-center"
-                  />
-                </Tooltip>
+                {!isBaselineUser() && (
+                  <Tooltip title="Edit">
+                    <Button
+                      shape="circle"
+                      variant="dashed"
+                      icon={<EditOutlined />}
+                      onClick={handleEdit}
+                      className="flex items-center justify-center"
+                    />
+                  </Tooltip>
+                )}
               </>
             )}
           </Space>
@@ -588,7 +611,8 @@ const BiographyPage: React.FC = () => {
               {biography!.title}
             </Title>
             {biography!.content && (
-              <Paragraph className="text-gray-700 dark:text-gray-300 text-base whitespace-pre-line mb-8">
+              <Paragraph className="text-gray-700 dark:text-gray-300 
+                text-base whitespace-pre-line mb-8">
                 {biography!.content}
               </Paragraph>
             )}

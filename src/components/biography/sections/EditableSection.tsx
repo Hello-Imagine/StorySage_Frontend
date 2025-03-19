@@ -131,7 +131,9 @@ export const EditableSection: React.FC<EditableSectionProps> = ({
 
   return (
     <>
-      <div className={`mb-6 p-4 border border-dashed border-gray-300 dark:border-gray-700 rounded ${section.isNew ? 'bg-gray-50 dark:bg-gray-800' : ''}`}>
+      <div className={`mb-6 p-4 border border-dashed border-gray-300 
+        dark:border-gray-700 rounded ${section.isNew ? 'bg-gray-50 dark:bg-gray-800' :
+         ''}`}>
         <div className="flex items-center gap-2 mb-2">
           <Input
             value={titleValue}
@@ -139,7 +141,9 @@ export const EditableSection: React.FC<EditableSectionProps> = ({
             disabled={!isTitleEditing}
             className={`
               font-bold
-              ${!isTitleEditing ? 'bg-transparent border-transparent hover:bg-gray-50 dark:hover:bg-gray-800' : ''}
+              ${!isTitleEditing ? 
+                'bg-transparent border-transparent hover:bg-gray-50 '
+                + 'dark:hover:bg-gray-800' : ''}
             `}
           />
           <Space>
@@ -185,7 +189,8 @@ export const EditableSection: React.FC<EditableSectionProps> = ({
               </Badge>
               <Button
                 icon={isContentEditing ? <CheckOutlined /> : <EditOutlined />}
-                onClick={isContentEditing ? handleContentConfirmClick : handleContentEditClick}
+                onClick={isContentEditing ? 
+                  handleContentConfirmClick : handleContentEditClick}
                 size="small"
                 type={isContentEditing ? "primary" : "default"}
                 title={isContentEditing ? "Save content" : "Edit content"}
@@ -200,10 +205,12 @@ export const EditableSection: React.FC<EditableSectionProps> = ({
               />
             ) : (
               <div 
-                className={`flex-1 mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded section-content`}
+                className={`flex-1 mb-4 p-3 bg-gray-50 dark:bg-gray-800 
+                  rounded section-content`}
                 onMouseUp={section.isNew ? undefined : handleTextSelection}
               >
-                <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line">
+                <p className="text-gray-700 dark:text-gray-300 
+                  whitespace-pre-line">
                   {formatContent(section.content)}
                 </p>
               </div>

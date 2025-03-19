@@ -1,15 +1,16 @@
 import React, { useState, useRef, KeyboardEvent, useEffect } from 'react';
 import { transcribeAudio } from '../../utils/api';
-import { Button, Tooltip } from 'antd';
+import { Button, Tooltip, notification } from 'antd';
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
   disabled?: boolean;
   setIsTranscribing: (isTranscribing: boolean) => void;
   stopAudio: () => void;
+  onRecordingStateChange: (isRecording: boolean) => void;
 }
 
-const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled, setIsTranscribing, stopAudio }) => {
+const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled, setIsTranscribing, stopAudio, onRecordingStateChange }) => {
   const [message, setMessage] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -38,9 +39,21 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled, setIsTra
     try {
       stopAudio();
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: 'audio/webm',
+      });
       mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = [];
+
+      // Notify parent when recording starts
+      setIsRecording(true);
+      onRecordingStateChange(true);
+
+      // Add recording time tracking
+      let recordingDuration = 0;
+      const recordingInterval = setInterval(() => {
+        recordingDuration += 1;
+      }, 1000);
 
       mediaRecorder.ondataavailable = (e) => {
         if (e.data.size > 0) {
@@ -49,7 +62,10 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled, setIsTra
       };
 
       mediaRecorder.onstop = async () => {
+        console.log("recordingDuration", recordingDuration);
+        clearInterval(recordingInterval);
         const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm' });
+        
         try {
           setIsProcessing(true);
           setIsTranscribing(true);
@@ -58,6 +74,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled, setIsTra
           const formData = new FormData();
           formData.append('audio', audioBlob, 'audio.webm');
           
+          // Add timing information
           const transcription = await transcribeAudio(formData);
           
           // Add transcription to message
@@ -71,7 +88,9 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled, setIsTra
             }
           }, 0);
         } catch (error) {
-          console.error('Transcription error:', error);
+          // Show error to user
+          alert(`Transcription failed: ${error instanceof Error ? 
+                error.message : 'Unknown error'}`);
         } finally {
           setIsProcessing(false);
           setIsTranscribing(false);
@@ -81,11 +100,27 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled, setIsTra
         stream.getTracks().forEach(track => track.stop());
       };
 
-      mediaRecorder.start();
-      setIsRecording(true);
+      // Set a time limit for recording to prevent extremely large files
+      const MAX_RECORDING_TIME = 120 * 1000; // 120 seconds
+      mediaRecorder.start(1000); // Collect data in 1-second chunks
+      
+      // Automatically stop recording after MAX_RECORDING_TIME
+      setTimeout(() => {
+        if (isRecording && mediaRecorderRef.current) {
+          stopRecording();
+          // Show notification that recording was stopped due to time limit
+          notification.info({
+            message: "Recording Stopped",
+            description: "Recording automatically stopped after 2 minutes."
+                        + " The audio is being processed.",
+            duration: 5,
+          });
+        }
+      }, MAX_RECORDING_TIME);
+      
     } catch (error) {
       console.error('Error starting recording:', error);
-      // Handle error (you might want to show a notification to the user)
+      alert('Could not access microphone. Please check your browser permissions.');
     }
   };
 
@@ -93,6 +128,8 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled, setIsTra
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
+      // Notify parent when recording stops
+      onRecordingStateChange(false);
     }
   };
 
@@ -139,7 +176,9 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled, setIsTra
   }, [isTypingMode]);
 
   return (
-    <div className="min-h-chat-input-min max-h-chat-input-max flex items-stretch bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-4 py-2">
+    <div className="min-h-chat-input-min max-h-chat-input-max flex items-stretch 
+      bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 
+      px-4 py-2">
       {isTypingMode ? (
         <>
           <div className="flex-1 relative mx-2">
@@ -149,7 +188,10 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled, setIsTra
               onChange={handleTextAreaChange}
               onKeyDown={handleKeyDown}
               placeholder="Type a message..."
-              className="w-full min-h-[48px] max-h-[144px] pr-10 resize-none rounded-lg border border-gray-300 dark:border-gray-600 p-2 focus:outline-none focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white overflow-y-auto"
+              className="w-full min-h-[48px] max-h-[144px] pr-10 resize-none 
+              rounded-lg border border-gray-300 dark:border-gray-600 p-2 
+              focus:outline-none focus:border-blue-500 bg-white dark:bg-gray-700 
+              text-gray-900 dark:text-white overflow-y-auto"
               disabled={disabled || isProcessing}
             />
             {message.trim() && (
@@ -159,7 +201,8 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled, setIsTra
                     onClick={handleSend}
                     disabled={disabled || isProcessing}
                     type="text"
-                    className="p-2 rounded-full bg-gray-900 hover:bg-gray-800 transition-colors"
+                    className="p-2 rounded-full bg-gray-900 
+                      hover:bg-gray-800 transition-colors"
                     icon={
                       <svg 
                         viewBox="0 0 24 24" 

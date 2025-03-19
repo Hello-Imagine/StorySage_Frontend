@@ -32,11 +32,13 @@ const MessageWindow: React.FC<MessageWindowProps> = ({ messages, historicalMessa
       {/* Show separator if there are historical messages */}
       {historicalMessagesCount > 0 && (
         <div className="flex items-center my-4">
-          <div className="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
+          <div className="flex-grow border-t border-gray-300 
+            dark:border-gray-600"></div>
           <span className="px-4 text-sm text-gray-500 dark:text-gray-400">
             The above are historical messages
           </span>
-          <div className="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
+          <div className="flex-grow border-t border-gray-300 
+            dark:border-gray-600"></div>
         </div>
       )}
 
@@ -45,7 +47,8 @@ const MessageWindow: React.FC<MessageWindowProps> = ({ messages, historicalMessa
         <ChatMessage
           key={message.id}
           message={message}
-          isMostRecent={index === newMessages.length - 1 && message.role === 'Interviewer'}
+          isMostRecent={index === newMessages.length - 1 &&
+            message.role === 'Interviewer'}
         />
       ))}
       <div ref={messagesEndRef} />
