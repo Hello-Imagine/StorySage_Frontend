@@ -15,6 +15,7 @@ interface InterviewWindowProps {
   onSkip: () => void;
   isSkipping?: boolean;
   isLiked?: boolean;
+  isLoading?: boolean;
 }
 
 const InterviewWindow: React.FC<InterviewWindowProps> = ({ 
@@ -25,25 +26,34 @@ const InterviewWindow: React.FC<InterviewWindowProps> = ({
   onLike,
   onSkip,
   isSkipping,
-  isLiked
+  isLiked,
+  isLoading
 }) => {
   const audioRef = useRef<HTMLAudioElement>(null);
   const isBaselineUser = useAuthStore(state => state.isBaselineUser);
   
-  // Pick a random sticker from 1-7 to display
-  const randomSticker = useMemo(() => {
-    return Math.floor(Math.random() * 7) + 1;
-  }, []);
-
-  // Animation variants for the breathing effect
-  const breathingAnimation = {
-    initial: { scale: 1 },
-    animate: {
-      scale: [1, 1.2, 0.9, 1],
+  // Determine who is speaking based on the latest message
+  const isBotSpeaking = useMemo(() => {
+    if (isLoading) return false;
+    
+    if (!latestMessage) return true;
+    return latestMessage.role === 'Interviewer';
+  }, [latestMessage, isLoading]);
+  
+  // Replace the separate animation objects with a single one
+  const speakingAnimation = {
+    speaking: {
+      scale: [1, 1.2, 1],
+      y: [0, -3, 0],
       transition: {
-        duration: 4,
+        duration: 1.5,
         repeat: Infinity,
-        ease: "easeInOut"
+      }
+    },
+    idle: {
+      scale: 1,
+      transition: {
+        duration: 1
       }
     }
   };
@@ -51,14 +61,27 @@ const InterviewWindow: React.FC<InterviewWindowProps> = ({
   return (
     <div className="flex-grow flex flex-col items-center justify-center p-4 bg-gray-50 dark:bg-gray-800">
       <div className="max-w-2xl w-full flex flex-col items-center space-y-8">
-        <motion.img 
-          src={`stickers/chatbot/${randomSticker}.png`}
-          alt="AI Interviewer" 
-          className="h-60 w-auto"
-          initial="initial"
-          animate="animate"
-          variants={breathingAnimation}
-        />
+        <div className="flex justify-between w-full relative px-14">
+          <div className="relative">
+            <motion.img 
+              src={isBotSpeaking ? "stickers/interviewer_bot.png" : "stickers/interviewer_bot_thinking.png"}
+              alt="AI Interviewer" 
+              className="h-48 w-auto"
+              animate={isBotSpeaking ? "speaking" : "idle"}
+              variants={speakingAnimation}
+            />
+          </div>
+          
+          <div className="relative">
+            <motion.img 
+              src={!isBotSpeaking ? "stickers/user.png" : "stickers/user_thinking.png"}
+              alt="User" 
+              className="h-48 w-auto"
+              animate={!isBotSpeaking ? "speaking" : "idle"}
+              variants={speakingAnimation}
+            />
+          </div>
+        </div>
         
         <div className="w-full bg-white dark:bg-gray-700 rounded-lg shadow-lg
           p-6 relative">
