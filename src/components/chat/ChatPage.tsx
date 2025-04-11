@@ -44,6 +44,9 @@ const ChatPage: React.FC = () => {
   const [isSkipping, setIsSkipping] = useState(false);
   const [likedMessageIds, setLikedMessageIds] = useState<Set<string>>(new Set());
 
+  // Add a new state to track user focus mode
+  const [isUserFocused, setIsUserFocused] = useState(false);
+
   // Modify fetchAudio to return the URL
   const fetchAudio = useCallback(async (messageContent: string): Promise<string | null> => {
     try {
@@ -415,7 +418,7 @@ const ChatPage: React.FC = () => {
           isLiked={!!getMostRecentInterviewerMessage()?.id && 
             likedMessageIds.has(getMostRecentInterviewerMessage()!.id)}
           isLoading={isLoading}
-          isRecording={isRecording}
+          isUserFocused={isUserFocused}
         />
       ) : (
         <MessageWindow 
@@ -429,7 +432,12 @@ const ChatPage: React.FC = () => {
           onSendMessage={handleSendMessage} 
           disabled={isLoading}
           setIsTranscribing={setIsTranscribing}
-          onRecordingStateChange={setIsRecording}
+          onRecordingStateChange={(isRec) => {
+            setIsRecording(isRec);
+            if (isRec) setIsUserFocused(true);
+          }}
+          onInputFocus={() => setIsUserFocused(true)}
+          onMessageSent={() => setIsUserFocused(false)}
         />
       </div>
     </div>

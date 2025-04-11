@@ -3,13 +3,15 @@ import { transcribeAudio } from '../../utils/api';
 import { Button, Tooltip, notification } from 'antd';
 
 interface ChatInputProps {
-  onSendMessage: (message: string) => void;
+  onSendMessage: (content: string) => Promise<void>;
   disabled?: boolean;
   setIsTranscribing: (isTranscribing: boolean) => void;
   onRecordingStateChange: (isRecording: boolean) => void;
+  onInputFocus?: () => void;
+  onMessageSent?: () => void;
 }
 
-const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled, setIsTranscribing, onRecordingStateChange }) => {
+const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled, setIsTranscribing, onRecordingStateChange, onInputFocus, onMessageSent }) => {
   const [message, setMessage] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -24,6 +26,8 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled, setIsTra
       setMessage('');
       // Switch back to voice mode after sending
       setIsTypingMode(false);
+      // Call onMessageSent when a message is sent
+      if (onMessageSent) onMessageSent();
     }
   };
 
@@ -165,6 +169,13 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled, setIsTra
   const handleTextAreaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setMessage(e.target.value);
     adjustTextAreaHeight();
+    // Call onInputFocus when user starts typing
+    if (onInputFocus && e.target.value.length === 1) onInputFocus();
+  };
+
+  // Add focus handler to textarea
+  const handleFocus = () => {
+    if (onInputFocus) onInputFocus();
   };
 
   useEffect(() => {
@@ -185,6 +196,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled, setIsTra
               value={message}
               onChange={handleTextAreaChange}
               onKeyDown={handleKeyDown}
+              onFocus={handleFocus}
               placeholder="Type a message..."
               className="w-full min-h-[48px] max-h-[144px] pr-10 resize-none 
               rounded-lg border border-gray-300 dark:border-gray-600 p-2 
