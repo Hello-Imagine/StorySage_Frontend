@@ -415,6 +415,7 @@ const ChatPage: React.FC = () => {
           isLiked={!!getMostRecentInterviewerMessage()?.id && 
             likedMessageIds.has(getMostRecentInterviewerMessage()!.id)}
           isLoading={isLoading}
+          isRecording={isRecording}
         />
       ) : (
         <MessageWindow 

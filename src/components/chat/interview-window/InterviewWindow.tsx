@@ -16,6 +16,7 @@ interface InterviewWindowProps {
   isSkipping?: boolean;
   isLiked?: boolean;
   isLoading?: boolean;
+  isRecording?: boolean;
 }
 
 const InterviewWindow: React.FC<InterviewWindowProps> = ({ 
@@ -27,27 +28,31 @@ const InterviewWindow: React.FC<InterviewWindowProps> = ({
   onSkip,
   isSkipping,
   isLiked,
-  isLoading
+  isLoading,
+  isRecording
 }) => {
   const audioRef = useRef<HTMLAudioElement>(null);
   const isBaselineUser = useAuthStore(state => state.isBaselineUser);
   
   // Determine who is speaking based on the latest message
   const isBotSpeaking = useMemo(() => {
-    if (isLoading) return false;
+    if (isLoading || isRecording) return false;
     
     if (!latestMessage) return true;
     return latestMessage.role === 'Interviewer';
-  }, [latestMessage, isLoading]);
+  }, [latestMessage, isLoading, isRecording]);
+  
+  // Determine if we should animate at all
+  const shouldAnimate = !isRecording;
   
   // Replace the separate animation objects with a single one
   const speakingAnimation = {
     speaking: {
-      scale: [1, 1.2, 1],
-      y: [0, -3, 0],
+      scale: shouldAnimate ? [1, 1.2, 1] : 1,
+      y: shouldAnimate ? [0, -3, 0] : 0,
       transition: {
         duration: 1.5,
-        repeat: Infinity,
+        repeat: shouldAnimate ? Infinity : 0,
       }
     },
     idle: {
