@@ -41,7 +41,7 @@ const Home: React.FC = () => {
           >
             <h1 className="p-2 text-5xl font-bold font-serif text-blue-800 
               dark:text-blue-300">
-              Life Trail AI
+              StorySage
             </h1>
             <p className="my-6 text-base font-serif text-neutral-700 
               dark:text-neutral-300">
