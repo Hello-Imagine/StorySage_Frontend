@@ -39,41 +39,13 @@ Create a `.env` file in the root directory. Copy the `.env.example` file and fil
 
 ## Usage
 
-Local Development:
-
-- Without Docker: Run `npm run dev` (will run on port 5173)
-- With Docker: Run `bash deploy.sh development` (will run on port 8080)
-
-Production Deployment:
-
-- Run `bash deploy.sh` or `bash deploy.sh production` (will run on port 80)
-
-Additional Options:
-
-- `--force-build`: Force rebuild the Docker image even if it exists
+To start the development server:
 
 ```bash
-# Force rebuild for development
-bash deploy.sh development --force-build
-
-# Force rebuild for production
-bash deploy.sh production --force-build
+npm run dev
 ```
 
-Notes:
-
-- The script will reuse existing Docker images unless `--force-build` is specified
-- Development mode uses the image tag `ai-friend-frontend-dev:latest`
-- Production mode uses the image tag `ai-friend-frontend:latest`
-- The script automatically creates and manages the Docker network `ai-friend-network`
-
-## Scripts
-
-Here are the commonly used scripts for this project:
-
-- **`npm run dev`**: Starts the development server.
-- **`npm run build`**: Builds the project for production.
-- **`npm run preview`**: Previews the production build locally.
+Once the server starts, you can access the application by opening the URL shown in the terminal.
 
 ## Backend Integration
 
