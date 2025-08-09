@@ -47,7 +47,9 @@ npm run dev
 
 Once the server starts, you can access the application by opening the URL shown in the terminal. Once you open the web page, you can start chatting via the following UI.
 
-![StorySage Multi-Agent Architecture](public/screenshots/screen_shot.png)
+<p align="center">
+  <img src="public/screenshots/screen_shot.png" alt="StorySage Frontend Chat UI" width="50%">
+</p>
 
 ## Backend Integration
 
